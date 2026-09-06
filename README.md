@@ -12,7 +12,9 @@ Hasta ahora solo estan los idiomas:
 2. Português
 3. English.
 
-Proximamente se agregaran mas idiomas
+Proximamente se agregaran mas 
+
+Intentar la app no te cuesta nada! Incluye boton de guardado, idiomas. y albumes con listado personalizado! ¡Pruebalo!
 
 (EXTRA)
 
