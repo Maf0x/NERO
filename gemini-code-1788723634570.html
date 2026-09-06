@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0d">
+  <title>NERO</title>
+  <!-- Librería para leer metadatos y carátulas de los MP3 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#0b0b0d;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+    .app{min-height:100vh;padding:28px 20px calc(40px + env(safe-area-inset-bottom));max-width:550px;margin:auto}
+    
+    .header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    h1{font-size:26px;margin:0;letter-spacing:-0.5px;font-weight:700}
+    .sub{color:#888;margin:2px 0 0;font-size:13px}
+    
+    .lang-select{background:#1c1c1e;color:#fff;border:1px solid #333;padding:6px 12px;border-radius:14px;font-size:13px;cursor:pointer;outline:none}
+
+    .nav-tabs{display:flex;gap:8px;margin-bottom:20px;background:#141416;padding:4px;border-radius:14px}
+    .tab-btn{flex:1;background:transparent;border:0;color:#888;padding:10px;font-size:13px;font-weight:600;border-radius:10px;cursor:pointer;transition:all 0.2s}
+    .tab-btn.active{background:#2c2c2e;color:#fff}
+
+    .drop{border:1px dashed #3a3a3c;border-radius:20px;padding:20px;text-align:center;background:#141416;transition:border-color 0.2s;margin-bottom:20px}
+    .drop:hover{border-color:#5a5a5e}
+    input[type=file]{display:none}
+    .pick{display:inline-block;background:#fff;color:#000;padding:12px 24px;border-radius:999px;font-weight:600;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(255,255,255,0.1);transition:transform 0.1s}
+    .pick:active{transform:scale(0.96)}
+    
+    .now{background:#1c1c1e;border-radius:28px;padding:28px 24px;box-shadow:0 20px 40px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.04)}
+    
+    .cover-container{width:100%;aspect-ratio:1;max-width:260px;margin:0 auto 20px;border-radius:18px;overflow:hidden;background:#2c2c2e;box-shadow:0 12px 24px rgba(0,0,0,0.4);position:relative;display:grid;place-items:center}
+    .cover-container img{width:100%;height:100%;object-fit:cover;display:none}
+    .cover-placeholder{font-size:60px;color:#555}
+    
+    .track-info{text-align:center;margin-bottom:18px}
+    .title{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.3px;margin-bottom:4px}
+    .artist{color:#8e8e93;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+    
+    .progress-container{margin-bottom:18px}
+    .progress-bar{width:100%;height:4px;background:#3a3a3c;border-radius:2px;appearance:none;outline:none;cursor:pointer;accent-color:#fff;transition:height 0.1s}
+    .progress-bar:hover{height:6px}
+    .time-codes{display:flex;justify-content:space-between;font-size:12px;color:#8e8e93;margin-top:8px;font-variant-numeric:tabular-nums}
+    
+    .controls{display:flex;justify-content:center;align-items:center;gap:32px;margin:18px 0}
+    button{border:0;background:transparent;color:#fff;cursor:pointer;display:grid;place-items:center;transition:transform 0.1s, opacity 0.2s}
+    button:active{transform:scale(0.88)}
+    
+    .btn-ctrl{font-size:24px;color:#fff}
+    button.main{width:60px;height:60px;background:#fff;color:#000;border-radius:50%;font-size:20px;box-shadow:0 4px 12px rgba(255,255,255,0.2)}
+    button.main:hover{background:#e5e5ea}
+
+    .extra-controls{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid #2c2c2e}
+    .volume-box{display:flex;align-items:center;gap:8px;color:#8e8e93;font-size:14px}
+    .volume-box input{accent-color:#fff;cursor:pointer;width:90px}
+
+    .view-section{display:none}
+    .view-section.active{display:block}
+
+    .list{margin-top:24px}
+    .list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .list-header h2{font-size:17px;margin:0;letter-spacing:-0.3px}
+    .clear-btn{background:transparent;color:#ff453a;width:auto;height:auto;font-size:13px;font-weight:600;padding:4px 8px;border-radius:6px}
+    .clear-btn:hover{background:rgba(255,69,58,0.1)}
+
+    .playlist-scroll{max-height:240px;overflow-y:auto;padding-right:4px}
+    .playlist-scroll::-webkit-scrollbar{width:4px}
+    .playlist-scroll::-webkit-scrollbar-thumb{background:#3a3a3c;border-radius:2px}
+
+    .track{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background 0.15s;margin-bottom:4px}
+    .track:hover{background:rgba(255,255,255,0.05)}
+    .track.active{background:rgba(255,255,255,0.1)}
+    .track.active .tn b{color:#fff}
+    .num{width:20px;color:#8e8e93;text-align:center;font-size:13px}
+    .tn{flex:1;min-width:0}
+    .tn b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;font-weight:500}
+    .tn span{font-size:12px;color:#8e8e93}
+    .del-track{background:transparent;color:#666;width:30px;height:30px;font-size:14px;border-radius:50%}
+    .del-track:hover{color:#ff453a;background:rgba(255,69,58,0.1)}
+
+    /* Grid de Álbumes */
+    .albums-grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;max-height:300px;overflow-y:auto;padding-right:4px}
+    .album-card{background:#1c1c1e;border-radius:16px;padding:12px;cursor:pointer;border:1px solid rgba(255,255,255,0.04);transition:transform 0.1s}
+    .album-card:hover{transform:scale(1.02)}
+    .album-cover{width:100%;aspect-ratio:1;border-radius:12px;background:#2c2c2e;display:grid;place-items:center;overflow:hidden;margin-bottom:10px;font-size:32px;color:#555}
+    .album-cover img{width:100%;height:100%;object-fit:cover}
+    .album-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .album-artist{font-size:12px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+    
+    .empty{color:#8e8e93;text-align:center;padding:24px;font-size:14px;background:#141416;border-radius:16px}
+  </style>
+</head>
+<body>
+<main class="app">
+  <div class="header-top">
+    <div>
+      <h1 id="i-title">NERO</h1>
+      <p id="i-sub" class="sub">Private Music Player</p>
+    </div>
+    <select id="langSelect" class="lang-select">
+      <option value="es">Español</option>
+      <option value="pt">Português</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" id="tab-queue" data-target="queue-view">Cola</button>
+    <button class="tab-btn" id="tab-albums" data-target="albums-view">Álbumes</button>
+  </div>
+
+  <div class="drop">
+    <label id="i-pick" class="pick" for="files">＋ Añadir carpetas o MP3</label>
+    <input id="files" type="file" accept="audio/mp3, audio/*" multiple>
+    <p id="i-droptext" style="color:#8e8e93;margin-top:10px;margin-bottom:0;font-size:13px">Sube tu música y NERO leerá sus metadatos.</p>
+  </div>
+
+  <section class="now">
+    <div class="cover-container">
+      <div id="cover-placeholder" class="cover-placeholder">♫</div>
+      <img id="cover-img" alt="Cover">
+    </div>
+    
+    <div class="track-info">
+      <div id="title" class="title">Ninguna canción</div>
+      <div id="artist" class="artist">NERO</div>
+    </div>
+    
+    <div class="progress-container">
+      <input type="range" id="progress" class="progress-bar" value="0" min="0" max="100" step="0.1">
+      <div class="time-codes">
+        <span id="current-time">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+
+    <audio id="audio" preload="metadata"></audio>
+    
+    <div class="controls">
+      <button id="prev" class="btn-ctrl" aria-label="Anterior">⏮</button>
+      <button id="play" class="main" aria-label="Reproducir">▶</button>
+      <button id="next" class="btn-ctrl" aria-label="Siguiente">⏭</button>
+    </div>
+
+    <div class="extra-controls">
+      <div class="volume-box">
+        <span>🔊</span>
+        <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+      </div>
+      <button id="clear" class="clear-btn" style="display:none">Vaciar</button>
+    </div>
+  </section>
+
+  <!-- Vistas: Cola y Álbumes -->
+  <div id="queue-view" class="view-section active">
+    <section class="list">
+      <div class="list-header">
+        <h2 id="i-queuetitle">Cola de reproducción</h2>
+      </div>
+      <div id="playlist" class="empty">No hay canciones todavía.</div>
+    </section>
+  </div>
+
+  <div id="albums-view" class="view-section">
+    <section class="list">
+      <div class="list-header">
+        <h2 id="i-albumstitle">Tus Álbumes</h2>
+      </div>
+      <div id="albums-container" class="empty">No hay álbumes detectados.</div>
+    </section>
+  </div>
+</main>
+
+<script>
+const translations = {
+  es: {
+    sub: "Tu reproductor privado",
+    pick: "＋ Añadir archivos MP3",
+    droptext: "Sube tu música y NERO leerá sus metadatos y álbumes.",
+    noSong: "Ninguna canción",
+    startMsg: "NERO",
+    queueTab: "Cola",
+    albumsTab: "Álbumes",
+    queueTitle: "Cola de reproducción",
+    albumsTitle: "Tus Álbumes",
+    emptyQueue: "No hay canciones todavía.",
+    emptyAlbums: "No hay álbumes detectados.",
+    clearQueue: "Vaciar",
+    prevBtn: "Anterior",
+    playBtn: "Reproducir",
+    nextBtn: "Siguiente"
+  },
+  pt: {
+    sub: "O seu reprodutor privado",
+    pick: "＋ Adicionar arquivos MP3",
+    droptext: "Envie suas músicas e o NERO lerá metadados e álbuns.",
+    noSong: "Nenhuma música",
+    startMsg: "NERO",
+    queueTab: "Fila",
+    albumsTab: "Álbuns",
+    queueTitle: "Fila de reprodução",
+    albumsTitle: "Seus Álbuns",
+    emptyQueue: "Nenhuma música ainda.",
+    emptyAlbums: "Nenhum álbum detectado.",
+    clearQueue: "Limpar",
+    prevBtn: "Anterior",
+    playBtn: "Reproduzir",
+    nextBtn: "Próxima"
+  },
+  en: {
+    sub: "Your private player",
+    pick: "＋ Add MP3 files",
+    droptext: "Upload your music and NERO will parse tags and albums.",
+    noSong: "No song playing",
+    startMsg: "NERO",
+    queueTab: "Queue",
+    albumsTab: "Albums",
+    queueTitle: "Playback queue",
+    albumsTitle: "Your Albums",
+    emptyQueue: "No songs yet.",
+    emptyAlbums: "No albums detected.",
+    clearQueue: "Clear",
+    prevBtn: "Previous",
+    playBtn: "Play",
+    nextBtn: "Next"
+  }
+};
+
+let currentLang = localStorage.getItem('nero_lang') || 'es';
+const langSelect = document.getElementById('langSelect');
+langSelect.value = currentLang;
+
+function updateTexts() {
+  const t = translations[currentLang];
+  document.getElementById('i-sub').textContent = t.sub;
+  document.getElementById('i-pick').textContent = t.pick;
+  document.getElementById('i-droptext').textContent = t.droptext;
+  document.getElementById('tab-queue').textContent = t.queueTab;
+  document.getElementById('tab-albums').textContent = t.albumsTab;
+  document.getElementById('i-queuetitle').textContent = t.queueTitle;
+  document.getElementById('i-albumstitle').textContent = t.albumsTitle;
+  document.getElementById('clear').textContent = t.clearQueue;
+  
+  document.getElementById('prev').ariaLabel = t.prevBtn;
+  document.getElementById('play').ariaLabel = t.playBtn;
+  document.getElementById('next').ariaLabel = t.nextBtn;
+
+  if (current === -1) {
+    document.getElementById('title').textContent = t.noSong;
+    document.getElementById('artist').textContent = t.startMsg;
+  }
+  if (tracks.length === 0) {
+    document.getElementById('playlist').textContent = t.emptyQueue;
+    document.getElementById('albums-container').textContent = t.emptyAlbums;
+  }
+}
+
+langSelect.addEventListener('change', (e) => {
+  currentLang = e.target.value;
+  localStorage.setItem('nero_lang', currentLang);
+  updateTexts();
+});
+
+// Pestañas (Tabs)
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.target).classList.add('active');
+  }
+});
+
+const audio = document.getElementById('audio');
+const files = document.getElementById('files');
+const playlist = document.getElementById('playlist');
+const albumsContainer = document.getElementById('albums-container');
+const title = document.getElementById('title');
+const artist = document.getElementById('artist');
+const play = document.getElementById('play');
+const progress = document.getElementById('progress');
+const currentTimeEl = document.getElementById('current-time');
+const durationEl = document.getElementById('duration');
+const volumeSlider = document.getElementById('volume');
+const clearBtn = document.getElementById('clear');
+const coverImg = document.getElementById('cover-img');
+const coverPlaceholder = document.getElementById('cover-placeholder');
+
+let tracks = [];
+let current = -1;
+
+files.addEventListener('change', e => {
+  const uploadedFiles = [...e.target.files];
+  
+  uploadedFiles.forEach(file => {
+    let trackObj = {
+      file,
+      name: file.name.replace(/\.[^/.]+$/, ""),
+      artist: "Desconocido",
+      album: "Desconocido",
+      coverUrl: null,
+      url: URL.createObjectURL(file),
+      size: formatSize(file.size)
+    };
+    
+    tracks.push(trackObj);
+    const index = tracks.length - 1;
+    
+    // Analizar etiquetas ID3 con jsmediatags
+    jsmediatags.read(file, {
+      onSuccess: function(tag) {
+        const tags = tag.tags;
+        if (tags.title) trackObj.name = tags.title;
+        if (tags.artist) trackObj.artist = tags.artist;
+        if (tags.album) trackObj.album = tags.album;
+        
+        if (tags.picture) {
+          try {
+            const data = tags.picture.data;
+            const format = tags.picture.format;
+            let base64String = "";
+            for (let i = 0; i < data.length; i++) {
+              base64String += String.fromCharCode(data[i]);
+            }
+            trackObj.coverUrl = `data:${format};base64,${window.btoa(base64String)}`;
+          } catch(err) {
+            console.error("Error al procesar carátula", err);
+          }
+        }
+        render();
+        if (current === index) updateUIInfo(trackObj);
+      },
+      onError: function(error) {
+        // Fallback si no tiene metadatos limpios: extraer de nombre de archivo (ej: Artista - Cancion)
+        let cleanName = file.name.replace(/\.[^/.]+$/, "");
+        if (cleanName.includes("-")) {
+          let parts = cleanName.split("-");
+          trackObj.artist = parts[0].trim();
+          trackObj.name = parts.slice(1).join("-").trim();
+        }
+        render();
+      }
+    });
+  });
+
+  if (current === -1 && tracks.length > 0) load(0);
+  files.value = '';
+});
+
+function updateUIInfo(t) {
+  title.textContent = t.name;
+  artist.textContent = t.artist;
+  
+  if (t.coverUrl) {
+    coverImg.src = t.coverUrl;
+    coverImg.style.display = 'block';
+    coverPlaceholder.style.display = 'none';
+  } else {
+    coverImg.style.display = 'none';
+    coverPlaceholder.style.display = 'grid';
+  }
+
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: t.name,
+      artist: t.artist,
+      album: t.album,
+      artwork: t.coverUrl ? [{ src: t.coverUrl, sizes: '512x512', type: 'image/jpeg' }] : []
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => audio.play());
+    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+    navigator.mediaSession.setActionHandler('previoustrack', () => prev());
+    navigator.mediaSession.setActionHandler('nexttrack', () => next());
+  }
+}
+
+function load(i, autoplay = false) {
+  if (!tracks[i]) return;
+  current = i;
+  const t = tracks[i];
+  
+  audio.src = t.url;
+  updateUIInfo(t);
+  render();
+  
+  if (autoplay) {
+    audio.play().catch(() => {});
+  }
+}
+
+function render() {
+  const tr = translations[currentLang];
+  if (!tracks.length) {
+    playlist.className = 'empty';
+    playlist.textContent = tr.emptyQueue;
+    albumsContainer.className = 'empty';
+    albumsContainer.textContent = tr.emptyAlbums;
+    clearBtn.style.display = 'none';
+    title.textContent = tr.noSong;
+    artist.textContent = tr.startMsg;
+    coverImg.style.display = 'none';
+    coverPlaceholder.style.display = 'grid';
+    return;
+  }
+  
+  playlist.className = 'playlist-scroll';
+  clearBtn.style.display = 'block';
+  
+  // Renderizar cola
+  playlist.innerHTML = tracks.map((t, i) => `
+    <div class="track ${i === current ? 'active' : ''}" data-i="${i}">
+      <div class="num">${i + 1}</div>
+      <div class="tn">
+        <b>${escapeHtml(t.name)}</b>
+        <span>${escapeHtml(t.artist)} • ${t.size}</span>
+      </div>
+      <button class="del-track" data-del="${i}" title="Eliminar">✕</button>
+    </div>`).join('');
+
+  playlist.querySelectorAll('.track').forEach(el => {
+    el.onclick = (e) => {
+      if (e.target.closest('.del-track')) return;
+      load(+el.dataset.i, true);
+    };
+  });
+
+  playlist.querySelectorAll('.del-track').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      removeTrack(+btn.dataset.del);
+    };
+  });
+
+  // Renderizar Álbumes Agrupados
+  renderAlbums();
+}
+
+function renderAlbums() {
+  const albumsMap = {};
+  tracks.forEach((t, index) => {
+    const albName = t.album || "Desconocido";
+    if (!albumsMap[albName]) {
+      albumsMap[albName] = {
+        name: albName,
+        artist: t.artist,
+        coverUrl: t.coverUrl,
+        firstIndex: index
+      };
+    } else if (!albumsMap[albName].coverUrl && t.coverUrl) {
+      albumsMap[albName].coverUrl = t.coverUrl; // Heredar carátula si alguna canción la tiene
+    }
+  });
+
+  const albumsList = Object.values(albumsMap);
+  albumsContainer.className = 'albums-grid';
+  albumsContainer.innerHTML = albumsList.map(album => `
+    <div class="album-card" data-index="${album.firstIndex}">
+      <div class="album-cover">
+        ${album.coverUrl ? `<img src="${album.coverUrl}" alt="Album">` : '♫'}
+      </div>
+      <div class="album-title">${escapeHtml(album.name)}</div>
+      <div class="album-artist">${escapeHtml(album.artist)}</div>
+    </div>
+  `).join('');
+
+  albumsContainer.querySelectorAll('.album-card').forEach(card => {
+    card.onclick = () => {
+      load(+card.dataset.index, true);
+      // Cambiar automáticamente a la vista de cola para ver la reproducción
+      document.querySelector('[data-target="queue-view"]').click();
+    };
+  });
+}
+
+function removeTrack(i) {
+  tracks.splice(i, 1);
+  if (current === i) {
+    audio.pause();
+    current = -1;
+    if (tracks.length > 0) {
+      load(Math.min(i, tracks.length - 1), false);
+    } else {
+      audio.src = '';
+    }
+  } else if (current > i) {
+    current--;
+  }
+  render();
+}
+
+clearBtn.onclick = () => {
+  audio.pause();
+  audio.src = '';
+  tracks = [];
+  current = -1;
+  render();
+};
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function formatSize(n) {
+  return (n / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+play.onclick = () => {
+  if (current < 0) {
+    if (tracks.length > 0) load(0, true);
+    return;
+  }
+  audio.paused ? audio.play() : audio.pause();
+};
+
+audio.onplay = () => play.textContent = '⏸';
+audio.onpause = () => play.textContent = '▶';
+audio.onended = () => next();
+
+function next() {
+  if (tracks.length) load((current + 1) % tracks.length, true);
+}
+function prev() {
+  if (tracks.length) load((current - 1 + tracks.length) % tracks.length, true);
+}
+
+document.getElementById('next').onclick = next;
+document.getElementById('prev').onclick = prev;
+
+audio.ontimeupdate = () => {
+  if (!isNaN(audio.duration)) {
+    progress.value = (audio.currentTime / audio.duration) * 100;
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+    durationEl.textContent = formatTime(audio.duration);
+  }
+};
+
+progress.oninput = () => {
+  if (!isNaN(audio.duration)) {
+    audio.currentTime = (progress.value / 100) * audio.duration;
+  }
+};
+
+volumeSlider.oninput = () => {
+  audio.volume = volumeSlider.value;
+};
+
+updateTexts();
+</script>
+</body>
+</html>
