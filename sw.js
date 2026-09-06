@@ -2,6 +2,7 @@ const CACHE_NAME = "nero-audio-v1";
 const assetsToCache = [
   "./index.html",
   "./manifest.json",
+  "./icon.svg",
   "https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"
 ];
 
