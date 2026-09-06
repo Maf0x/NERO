@@ -1,3 +1,5 @@
+NERO BETA 1.0
+
 (IMPORTANTE)
 
 este reproductor de musica (NERO) esta e fases betas y además obtuvo poca ayuda de ChatGPT, e Gemini. gracias por probar la aplicacion si lo hiciste.
@@ -5,8 +7,12 @@ algo importante es que esto no es una app. Es un archivo html que en el navegado
 
 (IDIOMAS)
 
-Hasta ahora noy hay una opcion de idiomas disponible. Solo español hasta ahora.
+Hasta ahora solo estan los idiomas:
+1. Español (Predeterminado)
+2. Português
+3. English.
 
+Proximamente se agregaran mas idiomas
 
 (EXTRA)
 
