@@ -141,7 +141,7 @@
       </div>
     </div>
 
-    <audio id="audio" preload="metadata"></audio>
+    <audio id="audio" preload="auto"></audio>
     
     <div class="controls">
       <button id="prev" class="btn-ctrl" aria-label="Anterior">⏮</button>
@@ -151,10 +151,10 @@
 
     <div class="extra-controls">
       <div class="volume-box">
-        <span>🔊</span>
+        <span id="vol-icon">🔊</span>
         <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
       </div>
-      <button id="clear" class="clear-btn" style="display:none">Vaciar</button>
+      <button id="clear" class="clear-btn" style="display:none">Vaciar todo</button>
     </div>
   </section>
 
@@ -297,11 +297,11 @@ const volumeSlider = document.getElementById('volume');
 const clearBtn = document.getElementById('clear');
 const coverImg = document.getElementById('cover-img');
 const coverPlaceholder = document.getElementById('cover-placeholder');
+const volIcon = document.getElementById('vol-icon');
 
 let tracks = [];
 let current = -1;
 
-// Guardar datos en Base64 para persistencia en LocalStorage al cerrar la app
 function saveToLocalStorage() {
   const dataToSave = tracks.map(t => ({
     name: t.name,
@@ -313,9 +313,7 @@ function saveToLocalStorage() {
   }));
   try {
     localStorage.setItem('nero_tracks', JSON.stringify(dataToSave));
-  } catch(e) {
-    console.warn("Memoria local llena o archivo muy pesado", e);
-  }
+  } catch(e) {}
 }
 
 function loadFromLocalStorage() {
@@ -324,7 +322,6 @@ function loadFromLocalStorage() {
   try {
     const parsed = JSON.parse(saved);
     tracks = parsed.map(item => {
-      // Reconstruir el objeto Blob/URL desde base64 guardado
       const blob = base64ToBlob(item.base64Data, 'audio/mp3');
       return {
         ...item,
@@ -335,9 +332,7 @@ function loadFromLocalStorage() {
     if (tracks.length > 0) {
       render();
     }
-  } catch(e) {
-    console.error("Error al cargar canciones guardadas", e);
-  }
+  } catch(e) {}
 }
 
 function base64ToBlob(base64, mime) {
@@ -448,6 +443,7 @@ function load(i, autoplay = false) {
   const t = tracks[i];
   
   audio.src = t.url;
+  audio.volume = parseFloat(volumeSlider.value);
   updateUIInfo(t);
   render();
   
@@ -589,7 +585,6 @@ function renderAlbums() {
     };
   });
 
-  // Botón para borrar un álbum completo de forma selectiva
   albumsContainer.querySelectorAll('.del-album-btn').forEach(btn => {
     btn.onclick = () => {
       const albName = btn.dataset.albumname;
@@ -616,14 +611,10 @@ function removeTrack(i) {
 }
 
 function removeAlbum(albumName) {
-  // Filtrar y conservar únicamente las pistas que NO pertenezcan al álbum seleccionado
-  const tracksToRemove = tracks.filter(t => (t.album || "Desconocido") === albumName);
   tracks = tracks.filter(t => (t.album || "Desconocido") !== albumName);
-  
   audio.pause();
   current = -1;
   audio.src = '';
-  
   saveToLocalStorage();
   render();
   if (tracks.length > 0) {
@@ -690,14 +681,17 @@ progress.oninput = () => {
   }
 };
 
-// Control de volumen completamente funcional (eventos input y change)
-const setVolume = () => {
-  audio.volume = volumeSlider.value;
+// Control de volumen sincronizado y forzado a nivel de código
+const handleVolumeChange = () => {
+  const val = parseFloat(volumeSlider.value);
+  audio.volume = val;
+  audio.muted = (val === 0);
+  volIcon.textContent = val === 0 ? '🔇' : '🔊';
 };
-volumeSlider.addEventListener('input', setVolume);
-volumeSlider.addEventListener('change', setVolume);
 
-// Cargar canciones guardadas al iniciar la aplicación
+volumeSlider.addEventListener('input', handleVolumeChange);
+volumeSlider.addEventListener('change', handleVolumeChange);
+
 loadFromLocalStorage();
 updateTexts();
 </script>
