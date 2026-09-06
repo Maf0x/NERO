@@ -302,7 +302,84 @@ const volIcon = document.getElementById('vol-icon');
 let tracks = [];
 let current = -1;
 
-// Web Audio API para asegurar control de volumen universal y funcional
+// Configuración de IndexedDB para almacenamiento masivo y seguro de música
+let db = null;
+function initDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('NeroMusicDB', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      db = request.result;
+      resolve(db);
+    };
+    request.onupgradeneeded = (e) => {
+      const database = e.target.result;
+      if (!database.objectStoreNames.contains('tracks')) {
+        database.createObjectStore('tracks', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
+
+async function saveTrackToDB(trackObj) {
+  if (!db) await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['tracks'], 'readwrite');
+    const store = transaction.objectStore('tracks');
+    const request = store.add(trackObj);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function deleteTrackFromDB(id) {
+  if (!db) await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['tracks'], 'readwrite');
+    const store = transaction.objectStore('tracks');
+    const request = store.delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function clearDB() {
+  if (!db) await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['tracks'], 'readwrite');
+    const store = transaction.objectStore('tracks');
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function loadTracksFromDB() {
+  try {
+    if (!db) await initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['tracks'], 'readonly');
+      const store = transaction.objectStore('tracks');
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const items = request.result;
+        tracks = items.map(item => ({
+          ...item,
+          url: URL.createObjectURL(item.blob)
+        }));
+        if (tracks.length > 0) {
+          render();
+        }
+        resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
+  } catch(e) {
+    console.error("Error cargando desde IndexedDB", e);
+  }
+}
+
+// Web Audio API para asegurar control de volumen universal
 let audioCtx = null;
 let gainNode = null;
 let sourceNode = null;
@@ -316,14 +393,12 @@ function initAudioContext() {
     sourceNode = audioCtx.createMediaElementSource(audio);
     sourceNode.connect(gainNode);
     gainNode.connect(audioCtx.destination);
-  } catch(e) {
-    console.warn("Web Audio API no soportada, usando volumen nativo", e);
-  }
+  } catch(e) {}
 }
 
 function updateVolume() {
   const val = parseFloat(volumeSlider.value);
-  audio.volume = val; // Respaldo nativo
+  audio.volume = val;
   if (gainNode && audioCtx) {
     gainNode.gain.value = val;
   }
@@ -333,78 +408,21 @@ function updateVolume() {
 volumeSlider.addEventListener('input', updateVolume);
 volumeSlider.addEventListener('change', updateVolume);
 
-function saveToLocalStorage() {
-  try {
-    const dataToSave = tracks.map(t => ({
-      name: t.name,
-      artist: t.artist,
-      album: t.album,
-      coverUrl: t.coverUrl,
-      size: t.size,
-      base64Data: t.base64Data
-    }));
-    localStorage.setItem('nero_tracks', JSON.stringify(dataToSave));
-  } catch(e) {
-    console.warn("Error al guardar en localStorage (posible límite de espacio)", e);
-  }
-}
-
-function loadFromLocalStorage() {
-  try {
-    const saved = localStorage.getItem('nero_tracks');
-    if (!saved) return;
-    const parsed = JSON.parse(saved);
-    tracks = parsed.map(item => {
-      const blob = base64ToBlob(item.base64Data, 'audio/mp3');
-      return {
-        ...item,
-        file: null,
-        url: URL.createObjectURL(blob)
-      };
-    });
-    if (tracks.length > 0) {
-      render();
-    }
-  } catch(e) {
-    console.error("Error al recuperar datos almacenados", e);
-  }
-}
-
-function base64ToBlob(base64, mime) {
-  const parts = base64.split(',');
-  const byteCharacters = atob(parts[1] || parts[0]);
-  const byteNumbers = new Array(byteCharacters.length);
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-  const byteArray = new Uint8Array(byteNumbers);
-  return new Blob([byteArray], {type: mime});
-}
-
-function fileToBase64(file, callback) {
-  const reader = new FileReader();
-  reader.onload = () => callback(reader.result);
-  reader.readAsDataURL(file);
-}
-
-files.addEventListener('change', e => {
+files.addEventListener('change', async e => {
   const uploadedFiles = [...e.target.files];
   
-  uploadedFiles.forEach(file => {
-    fileToBase64(file, (base64String) => {
-      let trackObj = {
-        name: file.name.replace(/\.[^/.]+$/, ""),
-        artist: "Desconocido",
-        album: "Desconocido",
-        coverUrl: null,
-        size: formatSize(file.size),
-        base64Data: base64String,
-        url: URL.createObjectURL(file)
-      };
-      
-      tracks.push(trackObj);
-      const index = tracks.length - 1;
-      
+  for (let file of uploadedFiles) {
+    let trackObj = {
+      name: file.name.replace(/\.[^/.]+$/, ""),
+      artist: "Desconocido",
+      album: "Desconocido",
+      coverUrl: null,
+      size: formatSize(file.size),
+      blob: file
+    };
+    
+    // Leer metadatos con jsmediatags
+    await new Promise((resolve) => {
       jsmediatags.read(file, {
         onSuccess: function(tag) {
           const tags = tag.tags;
@@ -423,9 +441,7 @@ files.addEventListener('change', e => {
               trackObj.coverUrl = `data:${format};base64,${window.btoa(picString)}`;
             } catch(err) {}
           }
-          saveToLocalStorage();
-          render();
-          if (current === index) updateUIInfo(trackObj);
+          resolve();
         },
         onError: function() {
           let cleanName = file.name.replace(/\.[^/.]+$/, "");
@@ -434,14 +450,20 @@ files.addEventListener('change', e => {
             trackObj.artist = parts[0].trim();
             trackObj.name = parts.slice(1).join("-").trim();
           }
-          saveToLocalStorage();
-          render();
+          resolve();
         }
       });
     });
-  });
 
-  if (current === -1 && tracks.length > 0) load(0);
+    const insertedId = await saveTrackToDB(trackObj);
+    trackObj.id = insertedId;
+    trackObj.url = URL.createObjectURL(file);
+    
+    tracks.push(trackObj);
+    render();
+    if (current === -1) load(0);
+  }
+
   files.value = '';
 });
 
@@ -559,7 +581,6 @@ function moveTrack(index, direction) {
   } else if (current === targetIndex) {
     current = index;
   }
-  saveToLocalStorage();
   render();
 }
 
@@ -632,7 +653,11 @@ function renderAlbums() {
   });
 }
 
-function removeTrack(i) {
+async function removeTrack(i) {
+  const t = tracks[i];
+  if (t && t.id) {
+    await deleteTrackFromDB(t.id);
+  }
   tracks.splice(i, 1);
   if (current === i) {
     audio.pause();
@@ -645,28 +670,30 @@ function removeTrack(i) {
   } else if (current > i) {
     current--;
   }
-  saveToLocalStorage();
   render();
 }
 
-function removeAlbum(albumName) {
+async function removeAlbum(albumName) {
+  const tracksToRemove = tracks.filter(t => (t.album || "Desconocido") === albumName);
+  for (let t of tracksToRemove) {
+    if (t.id) await deleteTrackFromDB(t.id);
+  }
   tracks = tracks.filter(t => (t.album || "Desconocido") !== albumName);
   audio.pause();
   current = -1;
   audio.src = '';
-  saveToLocalStorage();
   render();
   if (tracks.length > 0) {
     load(0, false);
   }
 }
 
-clearBtn.onclick = () => {
+clearBtn.onclick = async () => {
   audio.pause();
   audio.src = '';
   tracks = [];
   current = -1;
-  try { localStorage.removeItem('nero_tracks'); } catch(e){}
+  await clearDB();
   render();
 };
 
@@ -724,7 +751,10 @@ progress.oninput = () => {
   }
 };
 
-loadFromLocalStorage();
+// Inicializar base de datos y cargar música guardada al abrir la app
+initDB().then(() => {
+  loadTracksFromDB();
+});
 updateVolume();
 updateTexts();
 </script>
