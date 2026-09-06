@@ -302,11 +302,14 @@ const volIcon = document.getElementById('vol-icon');
 let tracks = [];
 let current = -1;
 
-// Configuración de IndexedDB para almacenamiento masivo y seguro de música
+// IndexedDB robusta con persistencia asegurada
 let db = null;
 function initDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('NeroMusicDB', 1);
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist();
+    }
+    const request = indexedDB.open('NeroMusicDB_v2', 1);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       db = request.result;
@@ -321,20 +324,31 @@ function initDB() {
   });
 }
 
-async function saveTrackToDB(trackObj) {
-  if (!db) await initDB();
-  return new Promise((resolve, reject) => {
+function saveTrackToDB(trackObj) {
+  return new Promise(async (resolve, reject) => {
+    if (!db) await initDB();
     const transaction = db.transaction(['tracks'], 'readwrite');
     const store = transaction.objectStore('tracks');
-    const request = store.add(trackObj);
+    
+    // Limpiamos la URL temporal antes de guardar el objeto puro
+    const cleanObj = {
+      name: trackObj.name,
+      artist: trackObj.artist,
+      album: trackObj.album,
+      coverUrl: trackObj.coverUrl,
+      size: trackObj.size,
+      blob: trackObj.blob
+    };
+    
+    const request = store.add(cleanObj);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 }
 
-async function deleteTrackFromDB(id) {
-  if (!db) await initDB();
-  return new Promise((resolve, reject) => {
+function deleteTrackFromDB(id) {
+  return new Promise(async (resolve, reject) => {
+    if (!db) await initDB();
     const transaction = db.transaction(['tracks'], 'readwrite');
     const store = transaction.objectStore('tracks');
     const request = store.delete(id);
@@ -343,9 +357,9 @@ async function deleteTrackFromDB(id) {
   });
 }
 
-async function clearDB() {
-  if (!db) await initDB();
-  return new Promise((resolve, reject) => {
+function clearDB() {
+  return new Promise(async (resolve, reject) => {
+    if (!db) await initDB();
     const transaction = db.transaction(['tracks'], 'readwrite');
     const store = transaction.objectStore('tracks');
     const request = store.clear();
@@ -354,10 +368,10 @@ async function clearDB() {
   });
 }
 
-async function loadTracksFromDB() {
-  try {
-    if (!db) await initDB();
-    return new Promise((resolve, reject) => {
+function loadTracksFromDB() {
+  return new Promise(async (resolve) => {
+    try {
+      if (!db) await initDB();
       const transaction = db.transaction(['tracks'], 'readonly');
       const store = transaction.objectStore('tracks');
       const request = store.getAll();
@@ -369,17 +383,18 @@ async function loadTracksFromDB() {
         }));
         if (tracks.length > 0) {
           render();
+          if (current === -1) load(0, false);
         }
         resolve();
       };
-      request.onerror = () => reject(request.error);
-    });
-  } catch(e) {
-    console.error("Error cargando desde IndexedDB", e);
-  }
+      request.onerror = () => resolve();
+    } catch(e) {
+      resolve();
+    }
+  });
 }
 
-// Web Audio API para asegurar control de volumen universal
+// Web Audio API para control de volumen universal
 let audioCtx = null;
 let gainNode = null;
 let sourceNode = null;
@@ -421,7 +436,6 @@ files.addEventListener('change', async e => {
       blob: file
     };
     
-    // Leer metadatos con jsmediatags
     await new Promise((resolve) => {
       jsmediatags.read(file, {
         onSuccess: function(tag) {
@@ -455,13 +469,17 @@ files.addEventListener('change', async e => {
       });
     });
 
-    const insertedId = await saveTrackToDB(trackObj);
-    trackObj.id = insertedId;
-    trackObj.url = URL.createObjectURL(file);
-    
-    tracks.push(trackObj);
-    render();
-    if (current === -1) load(0);
+    try {
+      const insertedId = await saveTrackToDB(trackObj);
+      trackObj.id = insertedId;
+      trackObj.url = URL.createObjectURL(file);
+      
+      tracks.push(trackObj);
+      render();
+      if (current === -1) load(0);
+    } catch(err) {
+      console.error("No se pudo guardar la canción en la base de datos", err);
+    }
   }
 
   files.value = '';
@@ -751,7 +769,7 @@ progress.oninput = () => {
   }
 };
 
-// Inicializar base de datos y cargar música guardada al abrir la app
+// Arrancar base de datos y restaurar canciones al cargar la página
 initDB().then(() => {
   loadTracksFromDB();
 });
