@@ -4,104 +4,106 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#09090b">
-  <title>NERO</title>
+  <title>NERO Music</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
   <style>
     :root {
-      --bg: #09090b;
-      --card: #121216;
-      --card-hover: #1a1a20;
+      --bg: #050507;
+      --card: rgba(20, 20, 25, 0.75);
+      --card-hover: rgba(30, 30, 38, 0.85);
       --border: rgba(255, 255, 255, 0.08);
       --text: #f4f4f5;
-      --text-sub: #a1a1aa;
-      --accent: #fff;
-      --accent-text: #000;
+      --text-sub: #9696a0;
+      --accent: #f4f4f5;
+      --accent-text: #09090b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; padding: 24px 16px; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; padding: 20px 12px; background-image: radial-gradient(circle at 50% 0%, #181824 0%, var(--bg) 75%); }
     
-    .app { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 20px; }
+    .app { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 16px; }
     
-    .header { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
-    .brand h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-    .brand p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; }
+    .brand h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.6px; background: linear-gradient(135deg, #fff 30%, #71717a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand p { font-size: 11px; color: var(--text-sub); margin-top: 1px; font-weight: 500; }
     
-    .header-actions { display: flex; gap: 8px; align-items: center; }
-    .btn-icon { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .btn-icon:hover { background: var(--card-hover); }
+    .header-actions { display: flex; gap: 6px; align-items: center; }
+    .btn-icon { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 7px 12px; border-radius: 10px; font-size: 11px; font-weight: 600; cursor: pointer; backdrop-filter: blur(12px); transition: all 0.2s; }
+    .btn-icon:hover { background: var(--card-hover); border-color: rgba(255,255,255,0.2); }
 
-    .tabs { display: flex; background: var(--card); padding: 4px; border-radius: 14px; border: 1px solid var(--border); }
-    .tab { flex: 1; background: transparent; border: 0; color: var(--text-sub); padding: 10px; font-size: 13px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
-    .tab.active { background: #27272a; color: var(--text); }
+    .tabs { display: flex; background: rgba(18, 18, 22, 0.6); padding: 3px; border-radius: 12px; border: 1px solid var(--border); backdrop-filter: blur(10px); }
+    .tab { flex: 1; background: transparent; border: 0; color: var(--text-sub); padding: 8px; font-size: 12px; font-weight: 600; border-radius: 9px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .tab.active { background: #27272a; color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
-    .dropzone { border: 2px dashed var(--border); border-radius: 20px; padding: 24px; text-align: center; background: var(--card); transition: border-color 0.2s; }
-    .dropzone:hover { border-color: rgba(255,255,255,0.3); }
+    .dropzone { border: 1.5px dashed rgba(255,255,255,0.12); border-radius: 18px; padding: 18px; text-align: center; background: rgba(15, 15, 18, 0.4); backdrop-filter: blur(8px); transition: all 0.2s; }
+    .dropzone:hover { border-color: rgba(255,255,255,0.3); background: rgba(20, 20, 25, 0.6); }
     input[type=file] { display: none; }
-    .btn-upload { display: inline-block; background: var(--accent); color: var(--accent-text); padding: 12px 24px; border-radius: 99px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 20px rgba(255,255,255,0.15); transition: transform 0.1s; }
-    .btn-upload:active { transform: scale(0.96); }
-    .dropzone p { color: var(--text-sub); font-size: 12px; margin-top: 10px; }
+    .btn-upload { display: inline-block; background: var(--accent); color: var(--accent-text); padding: 10px 20px; border-radius: 99px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 4px 16px rgba(255,255,255,0.1); transition: transform 0.15s, background 0.2s; }
+    .btn-upload:active { transform: scale(0.95); background: #e4e4e7; }
+    .dropzone p { color: var(--text-sub); font-size: 11px; margin-top: 8px; }
 
-    .player-card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 20px; }
+    .player-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 20px; backdrop-filter: blur(20px); box-shadow: 0 16px 36px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 16px; }
     
-    .cover-box { width: 100%; aspect-ratio: 1; max-width: 220px; margin: 0 auto; border-radius: 18px; overflow: hidden; background: #18181b; display: grid; place-items: center; box-shadow: 0 12px 30px rgba(0,0,0,0.5); position: relative; }
+    .cover-box { width: 100%; aspect-ratio: 1; max-width: 200px; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #121216; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0,0,0,0.6); position: relative; border: 1px solid var(--border); }
     .cover-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
-    .cover-placeholder { font-size: 48px; color: #3f3f46; }
+    .cover-placeholder { font-size: 42px; color: #3f3f46; }
 
-    .track-meta { text-align: center; }
-    .track-title { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
-    .track-artist { font-size: 13px; color: var(--text-sub); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-meta { text-align: center; padding: 0 4px; }
+    .track-title { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
+    .track-artist { font-size: 12px; color: var(--text-sub); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
 
-    .progress-area { display: flex; flex-direction: column; gap: 6px; }
-    .progress-slider { width: 100%; height: 6px; background: #27272a; border-radius: 3px; appearance: none; outline: none; cursor: pointer; accent-color: var(--accent); }
-    .time-info { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); font-variant-numeric: tabular-nums; }
+    .progress-area { display: flex; flex-direction: column; gap: 5px; }
+    .progress-slider { width: 100%; height: 5px; background: #27272a; border-radius: 3px; appearance: none; outline: none; cursor: pointer; accent-color: var(--accent); }
+    .time-info { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-sub); font-variant-numeric: tabular-nums; font-weight: 500; }
 
-    /* Controles corregidos estructuralmente para evitar deformaciones */
-    .controls { display: flex; justify-content: center; align-items: center; gap: 24px; }
-    .ctrl-btn { background: transparent; border: 0; color: var(--text); font-size: 20px; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, background 0.2s, transform 0.1s; flex-shrink: 0; }
-    .ctrl-btn:hover { opacity: 1; background: rgba(255,255,255,0.05); }
+    .controls { display: flex; justify-content: center; align-items: center; gap: 20px; }
+    .ctrl-btn { background: transparent; border: 0; color: var(--text); font-size: 18px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.85; transition: all 0.2s; flex-shrink: 0; }
+    .ctrl-btn:hover { opacity: 1; background: rgba(255,255,255,0.06); }
     .ctrl-btn:active { transform: scale(0.9); }
-    .ctrl-btn.main { width: 56px; height: 56px; background: var(--accent); color: var(--accent-text); font-size: 18px; opacity: 1; box-shadow: 0 4px 16px rgba(255,255,255,0.2); }
+    .ctrl-btn.main { width: 52px; height: 52px; background: var(--accent); color: var(--accent-text); font-size: 16px; opacity: 1; box-shadow: 0 4px 14px rgba(255,255,255,0.18); }
     .ctrl-btn.main:hover { background: #e4e4e7; }
 
-    .sub-controls { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 16px; }
-    .volume-box { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-sub); }
-    .volume-box input { accent-color: var(--accent); width: 80px; cursor: pointer; }
-    .btn-danger { background: transparent; border: 0; color: #ef4444; font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
-    .btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
+    .sub-controls { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 12px; }
+    .volume-box { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-sub); }
+    .volume-box input { accent-color: var(--accent); width: 75px; cursor: pointer; height: 4px; }
+    .btn-danger { background: transparent; border: 0; color: #f87171; font-size: 11px; font-weight: 600; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: background 0.2s; }
+    .btn-danger:hover { background: rgba(248, 113, 113, 0.1); }
 
-    .view-section { display: none; flex-direction: column; gap: 12px; }
+    .view-section { display: none; flex-direction: column; gap: 10px; }
     .view-section.active { display: flex; }
     
-    .section-header { display: flex; justify-content: space-between; align-items: center; }
-    .section-header h2 { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
+    .section-header h2 { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; color: var(--text-sub); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
 
-    .scroll-list { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px; }
-    .scroll-list::-webkit-scrollbar { width: 4px; }
+    .scroll-list { max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 2px; }
+    .scroll-list::-webkit-scrollbar { width: 3px; }
     .scroll-list::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
 
-    .track-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--card); border: 1px solid transparent; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+    .track-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: var(--card); border: 1px solid transparent; cursor: pointer; backdrop-filter: blur(10px); transition: all 0.15s; }
     .track-item:hover { background: var(--card-hover); }
-    .track-item.active { background: var(--card-hover); border-color: var(--border); }
-    .track-num { font-size: 12px; color: var(--text-sub); width: 16px; text-align: center; }
+    .track-item.active { background: rgba(39, 39, 42, 0.8); border-color: var(--border); }
+    .track-num { font-size: 11px; color: var(--text-sub); width: 14px; text-align: center; font-weight: 600; }
     .track-details { flex: 1; min-width: 0; }
-    .track-details b { display: block; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .track-details span { font-size: 11px; color: var(--text-sub); }
+    .track-details b { display: block; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-details span { font-size: 10px; color: var(--text-sub); }
     .track-actions-item { display: flex; gap: 2px; }
-    .mini-btn { background: transparent; border: 0; color: var(--text-sub); width: 24px; height: 24px; border-radius: 6px; font-size: 11px; display: grid; place-items: center; cursor: pointer; }
-    .mini-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
-    .mini-btn.del:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+    .mini-btn { background: transparent; border: 0; color: var(--text-sub); width: 22px; height: 22px; border-radius: 6px; font-size: 10px; display: grid; place-items: center; cursor: pointer; transition: all 0.15s; }
+    .mini-btn:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+    .mini-btn.del:hover { color: #f87171; background: rgba(248, 113, 113, 0.12); }
 
-    .albums-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-height: 260px; overflow-y: auto; padding-right: 4px; }
-    .album-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; }
-    .album-cover { width: 100%; aspect-ratio: 1; border-radius: 12px; background: #18181b; display: grid; place-items: center; overflow: hidden; font-size: 28px; color: #3f3f46; margin-bottom: 8px; cursor: pointer; }
+    .albums-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 240px; overflow-y: auto; padding-right: 2px; }
+    .albums-grid::-webkit-scrollbar { width: 3px; }
+    .albums-grid::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
+    .album-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; backdrop-filter: blur(10px); }
+    .album-cover { width: 100%; aspect-ratio: 1; border-radius: 10px; background: #121216; display: grid; place-items: center; overflow: hidden; font-size: 24px; color: #3f3f46; margin-bottom: 6px; cursor: pointer; border: 1px solid var(--border); }
     .album-cover img { width: 100%; height: 100%; object-fit: cover; }
-    .album-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .album-artist { font-size: 11px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px; }
+    .album-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .album-artist { font-size: 10px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
     .album-btns { display: flex; gap: 4px; }
-    .album-btn-play { flex: 1; background: var(--text); color: var(--bg); border: 0; border-radius: 8px; padding: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
-    .album-btn-del { background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 6px 8px; font-size: 11px; cursor: pointer; }
+    .album-btn-play { flex: 1; background: var(--text); color: var(--bg); border: 0; border-radius: 6px; padding: 5px; font-size: 10px; font-weight: 700; cursor: pointer; transition: transform 0.1s; }
+    .album-btn-play:active { transform: scale(0.95); }
+    .album-btn-del { background: transparent; color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); border-radius: 6px; padding: 5px 6px; font-size: 10px; cursor: pointer; }
 
-    .empty-state { color: var(--text-sub); text-align: center; padding: 24px; font-size: 13px; background: var(--card); border-radius: 16px; border: 1px solid var(--border); }
+    .empty-state { color: var(--text-sub); text-align: center; padding: 20px; font-size: 12px; background: var(--card); border-radius: 14px; border: 1px solid var(--border); backdrop-filter: blur(10px); }
   </style>
 </head>
 <body>
@@ -110,11 +112,11 @@
   <header class="header">
     <div class="brand">
       <h1 id="i-title">NERO</h1>
-      <p id="i-sub">Private Music Player</p>
+      <p id="i-sub">Audio Engine</p>
     </div>
     <div class="header-actions">
-      <button id="saveBackup" class="btn-icon" title="Guardar Backup en Archivo">💾 Guardar</button>
-      <select id="langSelect" class="btn-icon" style="padding: 7px 10px;">
+      <button id="saveBackup" class="btn-icon" title="Guardar Backup">💾 Backup</button>
+      <select id="langSelect" class="btn-icon" style="padding: 6px 8px;">
         <option value="es">ES</option>
         <option value="pt">PT</option>
         <option value="en">EN</option>
@@ -130,7 +132,7 @@
   <div class="dropzone">
     <label id="i-pick" class="btn-upload" for="files">＋ Añadir Música</label>
     <input id="files" type="file" accept="audio/mp3, audio/*" multiple>
-    <p id="i-droptext">Tus archivos se guardan de forma interna.</p>
+    <p id="i-droptext">Almacenamiento interno protegido.</p>
   </div>
 
   <section class="player-card">
@@ -140,7 +142,7 @@
     </div>
     
     <div class="track-meta">
-      <div id="title" class="track-title">Ninguna canción</div>
+      <div id="title" class="track-title">Sin reproducción</div>
       <div id="artist" class="track-artist">NERO</div>
     </div>
     
@@ -186,9 +188,9 @@
 
 <script>
 const translations = {
-  es: { sub: "Reproductor Privado", pick: "＋ Añadir Música", droptext: "Tus archivos se guardan de forma interna.", noSong: "Ninguna canción", startMsg: "NERO", queueTab: "Cola", albumsTab: "Álbumes", queueTitle: "Cola de reproducción", albumsTitle: "Tus Álbumes", emptyQueue: "No hay canciones todavía.", emptyAlbums: "No hay álbumes detectados.", clearQueue: "Vaciar todo", playAlbum: "Reproducir", delAlbumBtn: "Borrar", saveBtn: "💾 Guardar" },
-  pt: { sub: "Reprodutor Privado", pick: "＋ Adicionar Músicas", droptext: "Seus arquivos são salvos localmente.", noSong: "Nenhuma música", startMsg: "NERO", queueTab: "Fila", albumsTab: "Álbuns", queueTitle: "Fila de reprodução", albumsTitle: "Seus Álbuns", emptyQueue: "Nenhuma música ainda.", emptyAlbums: "Nenhum álbum detectado.", clearQueue: "Limpar tudo", playAlbum: "Reproduzir", delAlbumBtn: "Apagar", saveBtn: "💾 Salvar" },
-  en: { sub: "Private Music Player", pick: "＋ Add Music", droptext: "Your files are saved locally.", noSong: "No song playing", startMsg: "NERO", queueTab: "Queue", albumsTab: "Albums", queueTitle: "Playback queue", albumsTitle: "Your Albums", emptyQueue: "No songs yet.", emptyAlbums: "No albums detected.", clearQueue: "Clear all", playAlbum: "Play", delAlbumBtn: "Delete", saveBtn: "💾 Save" }
+  es: { sub: "Audio Engine", pick: "＋ Añadir Música", droptext: "Almacenamiento interno protegido.", noSong: "Sin reproducción", startMsg: "NERO", queueTab: "Cola", albumsTab: "Álbumes", queueTitle: "Cola de reproducción", albumsTitle: "Tus Álbumes", emptyQueue: "No hay canciones todavía.", emptyAlbums: "No hay álbumes detectados.", clearQueue: "Vaciar todo", playAlbum: "Reproducir", delAlbumBtn: "Borrar", saveBtn: "💾 Backup" },
+  pt: { sub: "Audio Engine", pick: "＋ Adicionar Músicas", droptext: "Armazenamento interno protegido.", noSong: "Nenhuma música", startMsg: "NERO", queueTab: "Fila", albumsTab: "Álbuns", queueTitle: "Fila de reprodução", albumsTitle: "Seus Álbuns", emptyQueue: "Nenhuma música ainda.", emptyAlbums: "Nenhum álbum detectado.", clearQueue: "Limpar tudo", playAlbum: "Reproduzir", delAlbumBtn: "Apagar", saveBtn: "💾 Backup" },
+  en: { sub: "Audio Engine", pick: "＋ Add Music", droptext: "Protected internal storage.", noSong: "No track selected", startMsg: "NERO", queueTab: "Queue", albumsTab: "Albums", queueTitle: "Playback queue", albumsTitle: "Your Albums", emptyQueue: "No songs yet.", emptyAlbums: "No albums detected.", clearQueue: "Clear all", playAlbum: "Play", delAlbumBtn: "Delete", saveBtn: "💾 Backup" }
 };
 
 let currentLang = localStorage.getItem('nero_lang') || 'es';
@@ -256,7 +258,7 @@ let db = null;
 function initDB() {
   return new Promise((resolve, reject) => {
     if (navigator.storage && navigator.storage.persist) { navigator.storage.persist(); }
-    const request = indexedDB.open('NeroMusicDB_v4', 1);
+    const request = indexedDB.open('NeroMusicDB_v5', 1);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => { db = request.result; resolve(db); };
     request.onupgradeneeded = (e) => {
@@ -288,7 +290,6 @@ function saveTrackToDB(trackObj) {
   });
 }
 
-// Actualiza el orden completo en la base de datos cuando se reordenan las pistas
 async function updateAllTracksOrder() {
   if (!db) await initDB();
   const transaction = db.transaction(['tracks'], 'readwrite');
@@ -339,9 +340,7 @@ function loadTracksFromDB() {
       const request = store.getAll();
       request.onsuccess = () => {
         let items = request.result;
-        // Ordenar estrictamente por el campo sortOrder guardado
         items.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-        
         tracks = items.map(item => ({
           ...item,
           url: URL.createObjectURL(item.blob)
@@ -359,21 +358,16 @@ function loadTracksFromDB() {
 
 saveBackupBtn.onclick = async () => {
   if (tracks.length === 0) {
-    alert("No hay canciones guardadas para exportar.");
+    alert("No hay canciones guardadas.");
     return;
   }
   const backupData = tracks.map((t, idx) => ({
-    name: t.name,
-    artist: t.artist,
-    album: t.album,
-    coverUrl: t.coverUrl,
-    size: t.size,
-    sortOrder: idx
+    name: t.name, artist: t.artist, album: t.album, coverUrl: t.coverUrl, size: t.size, sortOrder: idx
   }));
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", "nero_playlist_backup.json");
+  downloadAnchor.setAttribute("download", "nero_backup.json");
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
@@ -447,7 +441,8 @@ files.addEventListener('change', async e => {
   files.value = '';
 });
 
-function updateUIInfo(t) {
+// Configuración avanzada de la Media Session para reproducción en segundo plano y pantalla de bloqueo
+function updateMediaSession(t) {
   title.textContent = t.name;
   artist.textContent = t.artist;
   if (t.coverUrl) {
@@ -461,11 +456,14 @@ function updateUIInfo(t) {
 
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: t.name, artist: t.artist, album: t.album,
+      title: t.name,
+      artist: t.artist,
+      album: t.album,
       artwork: t.coverUrl ? [{ src: t.coverUrl, sizes: '512x512', type: 'image/jpeg' }] : []
     });
-    navigator.mediaSession.setActionHandler('play', () => audio.play());
-    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+
+    navigator.mediaSession.setActionHandler('play', () => { audio.play(); });
+    navigator.mediaSession.setActionHandler('pause', () => { audio.pause(); });
     navigator.mediaSession.setActionHandler('previoustrack', () => prev());
     navigator.mediaSession.setActionHandler('nexttrack', () => next());
   }
@@ -476,7 +474,7 @@ function load(i, autoplay = false) {
   current = i;
   const t = tracks[i];
   audio.src = t.url;
-  updateUIInfo(t);
+  updateMediaSession(t);
   render();
   if (autoplay) {
     initAudioContext();
@@ -663,8 +661,14 @@ play.onclick = () => {
   audio.paused ? audio.play() : audio.pause();
 };
 
-audio.onplay = () => play.textContent = '⏸';
-audio.onpause = () => play.textContent = '▶';
+audio.onplay = () => {
+  play.textContent = '⏸';
+  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
+};
+audio.onpause = () => {
+  play.textContent = '▶';
+  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
+};
 audio.onended = () => next();
 
 function next() { if (tracks.length) load((current + 1) % tracks.length, true); }
@@ -678,6 +682,17 @@ audio.ontimeupdate = () => {
     progress.value = (audio.currentTime / audio.duration) * 100;
     currentTimeEl.textContent = formatTime(audio.currentTime);
     durationEl.textContent = formatTime(audio.duration);
+    
+    // Actualización de posición para la pantalla de bloqueo
+    if ('mediaSession' in navigator && typeof navigator.mediaSession.setPositionState === 'function') {
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: audio.duration,
+          playbackRate: audio.playbackRate,
+          position: audio.currentTime
+        });
+      } catch (err) {}
+    }
   }
 };
 
