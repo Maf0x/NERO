@@ -1,4 +1,4 @@
-NERO BETA 1.0
+**NERO BETA 1.0**
 
 (IMPORTANTE)
 
