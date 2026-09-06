@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0d">
+  <title>NERO — Apple Music Style</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#0b0b0d;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+    .app{min-height:100vh;padding:28px 20px calc(40px + env(safe-area-inset-bottom));max-width:550px;margin:auto}
+    
+    .header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    h1{font-size:24px;margin:0;letter-spacing:-0.5px;font-weight:700}
+    .sub{color:#888;margin:2px 0 0;font-size:13px}
+    
+    .lang-select{background:#1c1c1e;color:#fff;border:1px solid #333;padding:6px 12px;border-radius:14px;font-size:13px;cursor:pointer;outline:none}
+
+    .drop{border:1px dashed #3a3a3c;border-radius:20px;padding:24px;text-align:center;background:#141416;transition:border-color 0.2s;margin-bottom:24px}
+    .drop:hover{border-color:#5a5a5e}
+    input[type=file]{display:none}
+    .pick{display:inline-block;background:#fa233b;color:#fff;padding:12px 24px;border-radius:999px;font-weight:600;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(250,35,59,0.3);transition:transform 0.1s}
+    .pick:active{transform:scale(0.96)}
+    
+    /* Estilo Apple Music Player */
+    .now{background:#1c1c1e;border-radius:28px;padding:28px 24px;box-shadow:0 20px 40px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.04)}
+    
+    .cover-container{width:100%;aspect-ratio:1;max-width:280px;margin:0 auto 24px;border-radius:20px;overflow:hidden;background:#2c2c2e;box-shadow:0 12px 24px rgba(0,0,0,0.4);position:relative;display:grid;place-items:center}
+    .cover-container img{width:100%;height:100%;object-fit:cover;display:none}
+    .cover-placeholder{font-size:64px;color:#555}
+    
+    .track-info{text-align:center;margin-bottom:20px}
+    .title{font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.3px;margin-bottom:4px}
+    .artist{color:#8e8e93;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+    
+    .progress-container{margin-bottom:20px}
+    .progress-bar{width:100%;height:4px;background:#3a3a3c;border-radius:2px;appearance:none;outline:none;cursor:pointer;accent-color:#fff;transition:height 0.1s}
+    .progress-bar:hover{height:6px}
+    .time-codes{display:flex;justify-content:space-between;font-size:12px;color:#8e8e93;margin-top:8px;font-variant-numeric:tabular-nums}
+    
+    .controls{display:flex;justify-content:center;align-items:center;gap:32px;margin:20px 0}
+    button{border:0;background:transparent;color:#fff;cursor:pointer;display:grid;place-items:center;transition:transform 0.1s, opacity 0.2s}
+    button:active{transform:scale(0.88)}
+    
+    .btn-ctrl{font-size:26px;color:#fff}
+    button.main{width:64px;height:64px;background:#fff;color:#000;border-radius:50%;font-size:22px;box-shadow:0 4px 12px rgba(255,255,255,0.2)}
+    button.main:hover{background:#e5e5ea}
+
+    .extra-controls{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid #2c2c2e}
+    .volume-box{display:flex;align-items:center;gap:8px;color:#8e8e93;font-size:14px}
+    .volume-box input{accent-color:#fa233b;cursor:pointer;width:90px}
+
+    .list{margin-top:28px}
+    .list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .list-header h2{font-size:18px;margin:0;letter-spacing:-0.3px}
+    .clear-btn{background:transparent;color:#fa233b;width:auto;height:auto;font-size:13px;font-weight:600;padding:4px 8px;border-radius:6px}
+    .clear-btn:hover{background:rgba(250,35,59,0.1)}
+
+    .playlist-scroll{max-height:260px;overflow-y:auto;padding-right:4px}
+    .playlist-scroll::-webkit-scrollbar{width:4px}
+    .playlist-scroll::-webkit-scrollbar-thumb{background:#3a3a3c;border-radius:2px}
+
+    .track{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background 0.15s;margin-bottom:4px}
+    .track:hover{background:rgba(255,255,255,0.05)}
+    .track.active{background:rgba(250,35,59,0.12)}
+    .track.active .tn b{color:#fa233b}
+    .num{width:20px;color:#8e8e93;text-align:center;font-size:13px}
+    .tn{flex:1;min-width:0}
+    .tn b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;font-weight:500}
+    .tn span{font-size:12px;color:#8e8e93}
+    .del-track{background:transparent;color:#666;width:30px;height:30px;font-size:14px;border-radius:50%}
+    .del-track:hover{color:#fa233b;background:rgba(250,35,59,0.1)}
+    
+    .empty{color:#8e8e93;text-align:center;padding:24px;font-size:14px;background:#141416;border-radius:16px}
+  </style>
+</head>
+<body>
+<main class="app">
+  <div class="header-top">
+    <div>
+      <h1 id="i-title">NERO</h1>
+      <p id="i-sub" class="sub">Apple Music Style</p>
+    </div>
+    <select id="langSelect" class="lang-select">
+      <option value="es">Español</option>
+      <option value="pt">Português</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+
+  <div class="drop">
+    <label id="i-pick" class="pick" for="files">Añadir archivos MP3</label>
+    <input id="files" type="file" accept="audio/mp3, audio/*" multiple>
+    <p id="i-droptext" style="color:#8e8e93;margin-top:10px;margin-bottom:0;font-size:13px">Selecciona canciones en MP3 para reproducir.</p>
+  </div>
+
+  <section class="now">
+    <div class="cover-container">
+      <div id="cover-placeholder" class="cover-placeholder">♫</div>
+      <img id="cover-img" alt="Cover">
+    </div>
+    
+    <div class="track-info">
+      <div id="title" class="title">Ninguna canción</div>
+      <div id="artist" class="artist">NERO Player</div>
+    </div>
+    
+    <div class="progress-container">
+      <input type="range" id="progress" class="progress-bar" value="0" min="0" max="100" step="0.1">
+      <div class="time-codes">
+        <span id="current-time">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+
+    <audio id="audio" preload="metadata"></audio>
+    
+    <div class="controls">
+      <button id="prev" class="btn-ctrl" aria-label="Anterior">⏮</button>
+      <button id="play" class="main" aria-label="Reproducir">▶</button>
+      <button id="next" class="btn-ctrl" aria-label="Siguiente">⏭</button>
+    </div>
+
+    <div class="extra-controls">
+      <div class="volume-box">
+        <span>🔊</span>
+        <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+      </div>
+      <button id="clear" class="clear-btn" style="display:none">Vaciar</button>
+    </div>
+  </section>
+
+  <section class="list">
+    <div class="list-header">
+      <h2 id="i-queuetitle">Cola</h2>
+    </div>
+    <div id="playlist" class="empty">No hay canciones todavía.</div>
+  </section>
+</main>
+
+<script>
+const translations = {
+  es: {
+    sub: "Estilo Apple Music",
+    pick: "Añadir archivos MP3",
+    droptext: "Selecciona canciones en MP3 para reproducir.",
+    noSong: "Ninguna canción",
+    startMsg: "NERO Player",
+    queueTitle: "Cola",
+    emptyQueue: "No hay canciones todavía.",
+    clearQueue: "Vaciar",
+    prevBtn: "Anterior",
+    playBtn: "Reproducir",
+    nextBtn: "Siguiente"
+  },
+  pt: {
+    sub: "Estilo Apple Music",
+    pick: "Adicionar arquivos MP3",
+    droptext: "Selecione músicas em MP3 para reproduzir.",
+    noSong: "Nenhuma música",
+    startMsg: "NERO Player",
+    queueTitle: "Fila",
+    emptyQueue: "Nenhuma música ainda.",
+    clearQueue: "Limpar",
+    prevBtn: "Anterior",
+    playBtn: "Reproduzir",
+    nextBtn: "Próxima"
+  },
+  en: {
+    sub: "Apple Music Style",
+    pick: "Add MP3 files",
+    droptext: "Select MP3 songs to play.",
+    noSong: "No song playing",
+    startMsg: "NERO Player",
+    queueTitle: "Up Next",
+    emptyQueue: "No songs yet.",
+    clearQueue: "Clear",
+    prevBtn: "Previous",
+    playBtn: "Play",
+    nextBtn: "Next"
+  }
+};
+
+let currentLang = localStorage.getItem('nero_lang') || 'es';
+const langSelect = document.getElementById('langSelect');
+langSelect.value = currentLang;
+
+function updateTexts() {
+  const t = translations[currentLang];
+  document.getElementById('i-sub').textContent = t.sub;
+  document.getElementById('i-pick').textContent = t.pick;
+  document.getElementById('i-droptext').textContent = t.droptext;
+  document.getElementById('i-queuetitle').textContent = t.queueTitle;
+  document.getElementById('clear').textContent = t.clearQueue;
+  
+  document.getElementById('prev').ariaLabel = t.prevBtn;
+  document.getElementById('play').ariaLabel = t.playBtn;
+  document.getElementById('next').ariaLabel = t.nextBtn;
+
+  if (current === -1) {
+    document.getElementById('title').textContent = t.noSong;
+    document.getElementById('artist').textContent = t.startMsg;
+  }
+  if (tracks.length === 0) {
+    document.getElementById('playlist').textContent = t.emptyQueue;
+  }
+}
+
+langSelect.addEventListener('change', (e) => {
+  currentLang = e.target.value;
+  localStorage.setItem('nero_lang', currentLang);
+  updateTexts();
+});
+
+const audio = document.getElementById('audio');
+const files = document.getElementById('files');
+const playlist = document.getElementById('playlist');
+const title = document.getElementById('title');
+const artist = document.getElementById('artist');
+const play = document.getElementById('play');
+const progress = document.getElementById('progress');
+const currentTimeEl = document.getElementById('current-time');
+const durationEl = document.getElementById('duration');
+const volumeSlider = document.getElementById('volume');
+const clearBtn = document.getElementById('clear');
+const coverImg = document.getElementById('cover-img');
+const coverPlaceholder = document.getElementById('cover-placeholder');
+
+let tracks = [];
+let current = -1;
+
+files.addEventListener('change', e => {
+  const newFiles = [...e.target.files].map(file => ({
+    file,
+    name: file.name.replace(/\.[^/.]+$/, ""),
+    artist: "Desconocido",
+    coverUrl: null,
+    url: URL.createObjectURL(file),
+    size: formatSize(file.size)
+  }));
+  
+  tracks.push(...newFiles);
+  render();
+  if (current === -1 && tracks.length > 0) load(0);
+  files.value = '';
+});
+
+// Función básica para intentar leer metadatos y carátula del MP3
+function parseMetadata(trackObj, index) {
+  if (!window.jsmediatags && typeof window.jsmediatags === 'undefined') {
+    // Si no hay librería externa, extraemos el nombre base limpio
+    tryParseFilename(trackObj, index);
+    return;
+  }
+}
+
+function tryParseFilename(track, index) {
+  let cleanName = track.file.name.replace(/\.[^/.]+$/, "");
+  if (cleanName.includes("-")) {
+    let parts = cleanName.split("-");
+    track.artist = parts[0].trim();
+    track.name = parts.slice(1).join("-").trim();
+  } else {
+    track.name = cleanName;
+    track.artist = "Archivo Local";
+  }
+  if (current === index) updateUIInfo(track);
+  render();
+}
+
+function updateUIInfo(t) {
+  title.textContent = t.name;
+  artist.textContent = t.artist;
+  
+  if (t.coverUrl) {
+    coverImg.src = t.coverUrl;
+    coverImg.style.display = 'block';
+    coverPlaceholder.style.display = 'none';
+  } else {
+    coverImg.style.display = 'none';
+    coverPlaceholder.style.display = 'grid';
+  }
+
+  // Configurar la API de Medios para que aparezca en la pantalla de bloqueo y notificaciones del móvil/PC
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: t.name,
+      artist: t.artist,
+      album: 'NERO Music',
+      artwork: t.coverUrl ? [{ src: t.coverUrl, sizes: '512x512', type: 'image/jpeg' }] : []
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => audio.play());
+    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+    navigator.mediaSession.setActionHandler('previoustrack', () => prev());
+    navigator.mediaSession.setActionHandler('nexttrack', () => next());
+  }
+}
+
+function load(i, autoplay = false) {
+  if (!tracks[i]) return;
+  current = i;
+  const t = tracks[i];
+  
+  audio.src = t.url;
+  
+  // Si el nombre tiene formato "Artista - Canción", intentamos separarlo automáticamente
+  let cleanName = t.file.name.replace(/\.[^/.]+$/, "");
+  if (cleanName.includes("-")) {
+    let parts = cleanName.split("-");
+    t.artist = parts[0].trim();
+    t.name = parts.slice(1).join("-").trim();
+  } else {
+    t.name = cleanName;
+    t.artist = t.file.name.endsWith('.mp3') ? 'Audio MP3' : 'Audio local';
+  }
+
+  updateUIInfo(t);
+  render();
+  
+  if (autoplay) {
+    audio.play().catch(() => {});
+  }
+}
+
+function render() {
+  const tr = translations[currentLang];
+  if (!tracks.length) {
+    playlist.className = 'empty';
+    playlist.textContent = tr.emptyQueue;
+    clearBtn.style.display = 'none';
+    title.textContent = tr.noSong;
+    artist.textContent = tr.startMsg;
+    coverImg.style.display = 'none';
+    coverPlaceholder.style.display = 'grid';
+    return;
+  }
+  
+  playlist.className = 'playlist-scroll';
+  clearBtn.style.display = 'block';
+  
+  playlist.innerHTML = tracks.map((t, i) => `
+    <div class="track ${i === current ? 'active' : ''}" data-i="${i}">
+      <div class="num">${i + 1}</div>
+      <div class="tn">
+        <b>${escapeHtml(t.name)}</b>
+        <span>${escapeHtml(t.artist)} • ${t.size}</span>
+      </div>
+      <button class="del-track" data-del="${i}" title="Eliminar">✕</button>
+    </div>`).join('');
+
+  playlist.querySelectorAll('.track').forEach(el => {
+    el.onclick = (e) => {
+      if (e.target.closest('.del-track')) return;
+      load(+el.dataset.i, true);
+    };
+  });
+
+  playlist.querySelectorAll('.del-track').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      removeTrack(+btn.dataset.del);
+    };
+  });
+}
+
+function removeTrack(i) {
+  tracks.splice(i, 1);
+  if (current === i) {
+    audio.pause();
+    current = -1;
+    if (tracks.length > 0) {
+      load(Math.min(i, tracks.length - 1), false);
+    } else {
+      audio.src = '';
+    }
+  } else if (current > i) {
+    current--;
+  }
+  render();
+}
+
+clearBtn.onclick = () => {
+  audio.pause();
+  audio.src = '';
+  tracks = [];
+  current = -1;
+  render();
+};
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function formatSize(n) {
+  return (n / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+play.onclick = () => {
+  if (current < 0) {
+    if (tracks.length > 0) load(0, true);
+    return;
+  }
+  audio.paused ? audio.play() : audio.pause();
+};
+
+audio.onplay = () => play.textContent = '⏸';
+audio.onpause = () => play.textContent = '▶';
+audio.onended = () => next();
+
+function next() {
+  if (tracks.length) load((current + 1) % tracks.length, true);
+}
+function prev() {
+  if (tracks.length) load((current - 1 + tracks.length) % tracks.length, true);
+}
+
+document.getElementById('next').onclick = next;
+document.getElementById('prev').onclick = prev;
+
+audio.ontimeupdate = () => {
+  if (!isNaN(audio.duration)) {
+    progress.value = (audio.currentTime / audio.duration) * 100;
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+    durationEl.textContent = formatTime(audio.duration);
+  }
+};
+
+progress.oninput = () => {
+  if (!isNaN(audio.duration)) {
+    audio.currentTime = (progress.value / 100) * audio.duration;
+  }
+};
+
+volumeSlider.oninput = () => {
+  audio.volume = volumeSlider.value;
+};
+
+updateTexts();
+</script>
+</body>
+</html>
