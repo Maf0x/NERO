@@ -22,7 +22,6 @@
     
     .app { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 20px; }
     
-    /* Top Header */
     .header { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
     .brand h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
     .brand p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
@@ -31,12 +30,10 @@
     .btn-icon { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .btn-icon:hover { background: var(--card-hover); }
 
-    /* Tabs */
     .tabs { display: flex; background: var(--card); padding: 4px; border-radius: 14px; border: 1px solid var(--border); }
     .tab { flex: 1; background: transparent; border: 0; color: var(--text-sub); padding: 10px; font-size: 13px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
     .tab.active { background: #27272a; color: var(--text); }
 
-    /* Drop Zone */
     .dropzone { border: 2px dashed var(--border); border-radius: 20px; padding: 24px; text-align: center; background: var(--card); transition: border-color 0.2s; }
     .dropzone:hover { border-color: rgba(255,255,255,0.3); }
     input[type=file] { display: none; }
@@ -44,7 +41,6 @@
     .btn-upload:active { transform: scale(0.96); }
     .dropzone p { color: var(--text-sub); font-size: 12px; margin-top: 10px; }
 
-    /* Player Card */
     .player-card { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 20px; }
     
     .cover-box { width: 100%; aspect-ratio: 1; max-width: 220px; margin: 0 auto; border-radius: 18px; overflow: hidden; background: #18181b; display: grid; place-items: center; box-shadow: 0 12px 30px rgba(0,0,0,0.5); position: relative; }
@@ -55,26 +51,24 @@
     .track-title { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px; }
     .track-artist { font-size: 13px; color: var(--text-sub); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* Progress & Time */
     .progress-area { display: flex; flex-direction: column; gap: 6px; }
     .progress-slider { width: 100%; height: 6px; background: #27272a; border-radius: 3px; appearance: none; outline: none; cursor: pointer; accent-color: var(--accent); }
     .time-info { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); font-variant-numeric: tabular-nums; }
 
-    /* Controls */
-    .controls { display: flex; justify-content: center; align-items: center; gap: 28px; }
-    .ctrl-btn { background: transparent; border: 0; color: var(--text); font-size: 22px; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, transform 0.1s; }
-    .ctrl-btn:hover { opacity: 1; }
+    /* Controles corregidos estructuralmente para evitar deformaciones */
+    .controls { display: flex; justify-content: center; align-items: center; gap: 24px; }
+    .ctrl-btn { background: transparent; border: 0; color: var(--text); font-size: 20px; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.8; transition: opacity 0.2s, background 0.2s, transform 0.1s; flex-shrink: 0; }
+    .ctrl-btn:hover { opacity: 1; background: rgba(255,255,255,0.05); }
     .ctrl-btn:active { transform: scale(0.9); }
-    .ctrl-btn.main { width: 56px; height: 56px; background: var(--accent); color: var(--accent-text); border-radius: 50%; display: grid; place-items: center; font-size: 18px; opacity: 1; box-shadow: 0 4px 16px rgba(255,255,255,0.2); }
+    .ctrl-btn.main { width: 56px; height: 56px; background: var(--accent); color: var(--accent-text); font-size: 18px; opacity: 1; box-shadow: 0 4px 16px rgba(255,255,255,0.2); }
+    .ctrl-btn.main:hover { background: #e4e4e7; }
 
-    /* Secondary Controls */
     .sub-controls { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 16px; }
     .volume-box { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-sub); }
     .volume-box input { accent-color: var(--accent); width: 80px; cursor: pointer; }
     .btn-danger { background: transparent; border: 0; color: #ef4444; font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
     .btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
 
-    /* Views */
     .view-section { display: none; flex-direction: column; gap: 12px; }
     .view-section.active { display: flex; }
     
@@ -85,7 +79,6 @@
     .scroll-list::-webkit-scrollbar { width: 4px; }
     .scroll-list::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
 
-    /* Track Item */
     .track-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--card); border: 1px solid transparent; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
     .track-item:hover { background: var(--card-hover); }
     .track-item.active { background: var(--card-hover); border-color: var(--border); }
@@ -98,7 +91,6 @@
     .mini-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
     .mini-btn.del:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
 
-    /* Albums Grid */
     .albums-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-height: 260px; overflow-y: auto; padding-right: 4px; }
     .album-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; }
     .album-cover { width: 100%; aspect-ratio: 1; border-radius: 12px; background: #18181b; display: grid; place-items: center; overflow: hidden; font-size: 28px; color: #3f3f46; margin-bottom: 8px; cursor: pointer; }
@@ -264,7 +256,7 @@ let db = null;
 function initDB() {
   return new Promise((resolve, reject) => {
     if (navigator.storage && navigator.storage.persist) { navigator.storage.persist(); }
-    const request = indexedDB.open('NeroMusicDB_v3', 1);
+    const request = indexedDB.open('NeroMusicDB_v4', 1);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => { db = request.result; resolve(db); };
     request.onupgradeneeded = (e) => {
@@ -287,11 +279,32 @@ function saveTrackToDB(trackObj) {
       album: trackObj.album,
       coverUrl: trackObj.coverUrl,
       size: trackObj.size,
-      blob: trackObj.blob
+      blob: trackObj.blob,
+      sortOrder: trackObj.sortOrder
     };
     const request = store.add(cleanObj);
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
+  });
+}
+
+// Actualiza el orden completo en la base de datos cuando se reordenan las pistas
+async function updateAllTracksOrder() {
+  if (!db) await initDB();
+  const transaction = db.transaction(['tracks'], 'readwrite');
+  const store = transaction.objectStore('tracks');
+  tracks.forEach((t, index) => {
+    t.sortOrder = index;
+    store.put({
+      id: t.id,
+      name: t.name,
+      artist: t.artist,
+      album: t.album,
+      coverUrl: t.coverUrl,
+      size: t.size,
+      blob: t.blob,
+      sortOrder: index
+    });
   });
 }
 
@@ -325,7 +338,10 @@ function loadTracksFromDB() {
       const store = transaction.objectStore('tracks');
       const request = store.getAll();
       request.onsuccess = () => {
-        const items = request.result;
+        let items = request.result;
+        // Ordenar estrictamente por el campo sortOrder guardado
+        items.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+        
         tracks = items.map(item => ({
           ...item,
           url: URL.createObjectURL(item.blob)
@@ -341,18 +357,18 @@ function loadTracksFromDB() {
   });
 }
 
-// Función para descargar un archivo de respaldo (exportar listado de canciones)
 saveBackupBtn.onclick = async () => {
   if (tracks.length === 0) {
     alert("No hay canciones guardadas para exportar.");
     return;
   }
-  const backupData = tracks.map(t => ({
+  const backupData = tracks.map((t, idx) => ({
     name: t.name,
     artist: t.artist,
     album: t.album,
     coverUrl: t.coverUrl,
-    size: t.size
+    size: t.size,
+    sortOrder: idx
   }));
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
   const downloadAnchor = document.createElement('a');
@@ -394,7 +410,8 @@ files.addEventListener('change', async e => {
       album: "Desconocido",
       coverUrl: null,
       size: formatSize(file.size),
-      blob: file
+      blob: file,
+      sortOrder: tracks.length
     };
     
     await new Promise((resolve) => {
@@ -524,13 +541,15 @@ function render() {
   renderAlbums();
 }
 
-function moveTrack(index, direction) {
+async function moveTrack(index, direction) {
   const targetIndex = direction === 'up' ? index - 1 : index + 1;
   if (targetIndex < 0 || targetIndex >= tracks.length) return;
   const item = tracks.splice(index, 1)[0];
   tracks.splice(targetIndex, 0, item);
   if (current === index) current = targetIndex;
   else if (current === targetIndex) current = index;
+  
+  await updateAllTracksOrder();
   render();
 }
 
@@ -602,6 +621,7 @@ async function removeTrack(i) {
     if (tracks.length > 0) load(Math.min(i, tracks.length - 1), false);
     else audio.src = '';
   } else if (current > i) { current--; }
+  await updateAllTracksOrder();
   render();
 }
 
@@ -614,6 +634,7 @@ async function removeAlbum(albumName) {
   audio.pause();
   current = -1;
   audio.src = '';
+  await updateAllTracksOrder();
   render();
   if (tracks.length > 0) load(0, false);
 }
