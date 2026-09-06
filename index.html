@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <title>NERO Audio</title>
+
+  <!-- Enlace al Manifiesto PWA -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
   <style>
     :root {
@@ -188,6 +193,15 @@
 </main>
 
 <script>
+  // Registro del Service Worker para PWA
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js")
+        .then(reg => console.log("Service Worker registrado con éxito:", reg.scope))
+        .catch(err => console.log("Error al registrar el Service Worker:", err));
+    });
+  }
+
 const translations = {
   es: { sub: "Engine", pick: "＋ Añadir Música", droptext: "Almacenamiento seguro interno", noSong: "Sin reproducción", startMsg: "NERO", queueTab: "Cola", albumsTab: "Álbumes", queueTitle: "Cola de reproducción", albumsTitle: "Tus Álbumes", emptyQueue: "No hay canciones todavía.", emptyAlbums: "No hay álbumes detectados.", clearQueue: "Vaciar todo", playAlbum: "Reproducir", delAlbumBtn: "Borrar", saveBtn: "💾 Backup" },
   pt: { sub: "Engine", pick: "＋ Adicionar Músicas", droptext: "Armazenamento seguro interno", noSong: "Nenhuma música", startMsg: "NERO", queueTab: "Fila", albumsTab: "Álbuns", queueTitle: "Fila de reprodução", albumsTitle: "Seus Álbuns", emptyQueue: "Nenhuma música ainda.", emptyAlbums: "Nenhum álbum detectado.", clearQueue: "Limpar tudo", playAlbum: "Reproduzir", delAlbumBtn: "Apagar", saveBtn: "💾 Backup" },
