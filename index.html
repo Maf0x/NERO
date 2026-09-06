@@ -141,7 +141,7 @@
       </div>
     </div>
 
-    <audio id="audio" preload="auto"></audio>
+    <audio id="audio" crossorigin="anonymous" preload="auto"></audio>
     
     <div class="controls">
       <button id="prev" class="btn-ctrl" aria-label="Anterior">⏮</button>
@@ -270,7 +270,7 @@ function updateTexts() {
 
 langSelect.addEventListener('change', (e) => {
   currentLang = e.target.value;
-  localStorage.setItem('nero_lang', currentLang);
+  try { localStorage.setItem('nero_lang', currentLang); } catch(err){}
   updateTexts();
 });
 
@@ -302,24 +302,57 @@ const volIcon = document.getElementById('vol-icon');
 let tracks = [];
 let current = -1;
 
-function saveToLocalStorage() {
-  const dataToSave = tracks.map(t => ({
-    name: t.name,
-    artist: t.artist,
-    album: t.album,
-    coverUrl: t.coverUrl,
-    size: t.size,
-    base64Data: t.base64Data
-  }));
+// Web Audio API para asegurar control de volumen universal y funcional
+let audioCtx = null;
+let gainNode = null;
+let sourceNode = null;
+
+function initAudioContext() {
+  if (audioCtx) return;
   try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContext();
+    gainNode = audioCtx.createGain();
+    sourceNode = audioCtx.createMediaElementSource(audio);
+    sourceNode.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+  } catch(e) {
+    console.warn("Web Audio API no soportada, usando volumen nativo", e);
+  }
+}
+
+function updateVolume() {
+  const val = parseFloat(volumeSlider.value);
+  audio.volume = val; // Respaldo nativo
+  if (gainNode && audioCtx) {
+    gainNode.gain.value = val;
+  }
+  volIcon.textContent = val === 0 ? '🔇' : '🔊';
+}
+
+volumeSlider.addEventListener('input', updateVolume);
+volumeSlider.addEventListener('change', updateVolume);
+
+function saveToLocalStorage() {
+  try {
+    const dataToSave = tracks.map(t => ({
+      name: t.name,
+      artist: t.artist,
+      album: t.album,
+      coverUrl: t.coverUrl,
+      size: t.size,
+      base64Data: t.base64Data
+    }));
     localStorage.setItem('nero_tracks', JSON.stringify(dataToSave));
-  } catch(e) {}
+  } catch(e) {
+    console.warn("Error al guardar en localStorage (posible límite de espacio)", e);
+  }
 }
 
 function loadFromLocalStorage() {
-  const saved = localStorage.getItem('nero_tracks');
-  if (!saved) return;
   try {
+    const saved = localStorage.getItem('nero_tracks');
+    if (!saved) return;
     const parsed = JSON.parse(saved);
     tracks = parsed.map(item => {
       const blob = base64ToBlob(item.base64Data, 'audio/mp3');
@@ -332,11 +365,14 @@ function loadFromLocalStorage() {
     if (tracks.length > 0) {
       render();
     }
-  } catch(e) {}
+  } catch(e) {
+    console.error("Error al recuperar datos almacenados", e);
+  }
 }
 
 function base64ToBlob(base64, mime) {
-  const byteCharacters = atob(base64.split(',')[1] || base64);
+  const parts = base64.split(',');
+  const byteCharacters = atob(parts[1] || parts[0]);
   const byteNumbers = new Array(byteCharacters.length);
   for (let i = 0; i < byteCharacters.length; i++) {
     byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -443,11 +479,14 @@ function load(i, autoplay = false) {
   const t = tracks[i];
   
   audio.src = t.url;
-  audio.volume = parseFloat(volumeSlider.value);
   updateUIInfo(t);
   render();
   
   if (autoplay) {
+    initAudioContext();
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
     audio.play().catch(() => {});
   }
 }
@@ -627,7 +666,7 @@ clearBtn.onclick = () => {
   audio.src = '';
   tracks = [];
   current = -1;
-  localStorage.removeItem('nero_tracks');
+  try { localStorage.removeItem('nero_tracks'); } catch(e){}
   render();
 };
 
@@ -646,6 +685,10 @@ function escapeHtml(s) {
 }
 
 play.onclick = () => {
+  initAudioContext();
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
   if (current < 0) {
     if (tracks.length > 0) load(0, true);
     return;
@@ -681,18 +724,8 @@ progress.oninput = () => {
   }
 };
 
-// Control de volumen sincronizado y forzado a nivel de código
-const handleVolumeChange = () => {
-  const val = parseFloat(volumeSlider.value);
-  audio.volume = val;
-  audio.muted = (val === 0);
-  volIcon.textContent = val === 0 ? '🔇' : '🔊';
-};
-
-volumeSlider.addEventListener('input', handleVolumeChange);
-volumeSlider.addEventListener('change', handleVolumeChange);
-
 loadFromLocalStorage();
+updateVolume();
 updateTexts();
 </script>
 </body>
