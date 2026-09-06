@@ -81,15 +81,18 @@
     .order-btn:hover{color:#fff;background:rgba(255,255,255,0.1)}
     .del-track:hover{color:#ff453a;background:rgba(255,69,58,0.1)}
 
-    /* Grid de Álbumes */
     .albums-grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:16px;max-height:300px;overflow-y:auto;padding-right:4px}
-    .album-card{background:#1c1c1e;border-radius:16px;padding:12px;border:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;justify-content:space-between}
+    .album-card{background:#1c1c1e;border-radius:16px;padding:12px;border:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;justify-content:space-between;position:relative}
     .album-cover{width:100%;aspect-ratio:1;border-radius:12px;background:#2c2c2e;display:grid;place-items:center;overflow:hidden;margin-bottom:10px;font-size:32px;color:#555;cursor:pointer}
     .album-cover img{width:100%;height:100%;object-fit:cover}
     .album-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .album-artist{font-size:12px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;margin-bottom:8px}
-    .play-album-btn{background:#fff;color:#000;border:0;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer;width:100%}
+    
+    .album-actions{display:flex;gap:6px}
+    .play-album-btn{flex:1;background:#fff;color:#000;border:0;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer}
     .play-album-btn:hover{background:#e5e5ea}
+    .del-album-btn{background:transparent;color:#ff453a;border:1px solid rgba(255,69,58,0.3);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
+    .del-album-btn:hover{background:rgba(255,69,58,0.1)}
     
     .empty{color:#8e8e93;text-align:center;padding:24px;font-size:14px;background:#141416;border-radius:16px}
   </style>
@@ -116,7 +119,7 @@
   <div class="drop">
     <label id="i-pick" class="pick" for="files">＋ Añadir archivos MP3</label>
     <input id="files" type="file" accept="audio/mp3, audio/*" multiple>
-    <p id="i-droptext" style="color:#8e8e93;margin-top:10px;margin-bottom:0;font-size:13px">Sube tu música y NERO leerá sus metadatos.</p>
+    <p id="i-droptext" style="color:#8e8e93;margin-top:10px;margin-bottom:0;font-size:13px">Sube tu música y NERO guardará tus canciones.</p>
   </div>
 
   <section class="now">
@@ -179,7 +182,7 @@ const translations = {
   es: {
     sub: "Tu reproductor privado",
     pick: "＋ Añadir archivos MP3",
-    droptext: "Sube tu música y NERO leerá sus metadatos y álbumes.",
+    droptext: "Sube tu música y NERO guardará tus canciones.",
     noSong: "Ninguna canción",
     startMsg: "NERO",
     queueTab: "Cola",
@@ -188,8 +191,9 @@ const translations = {
     albumsTitle: "Tus Álbumes",
     emptyQueue: "No hay canciones todavía.",
     emptyAlbums: "No hay álbumes detectados.",
-    clearQueue: "Vaciar",
-    playAlbum: "Reproducir Álbum",
+    clearQueue: "Vaciar todo",
+    playAlbum: "Reproducir",
+    delAlbumBtn: "Borrar",
     prevBtn: "Anterior",
     playBtn: "Reproducir",
     nextBtn: "Siguiente"
@@ -197,7 +201,7 @@ const translations = {
   pt: {
     sub: "O seu reprodutor privado",
     pick: "＋ Adicionar arquivos MP3",
-    droptext: "Envie suas músicas e o NERO lerá metadados e álbuns.",
+    droptext: "Envie suas músicas e o NERO salvará suas faixas.",
     noSong: "Nenhuma música",
     startMsg: "NERO",
     queueTab: "Fila",
@@ -206,8 +210,9 @@ const translations = {
     albumsTitle: "Seus Álbuns",
     emptyQueue: "Nenhuma música ainda.",
     emptyAlbums: "Nenhum álbum detectado.",
-    clearQueue: "Limpar",
-    playAlbum: "Reproduzir Álbum",
+    clearQueue: "Limpar tudo",
+    playAlbum: "Reproduzir",
+    delAlbumBtn: "Apagar",
     prevBtn: "Anterior",
     playBtn: "Reproduzir",
     nextBtn: "Próxima"
@@ -215,7 +220,7 @@ const translations = {
   en: {
     sub: "Your private player",
     pick: "＋ Add MP3 files",
-    droptext: "Upload your music and NERO will parse tags and albums.",
+    droptext: "Upload your music and NERO will save your tracks.",
     noSong: "No song playing",
     startMsg: "NERO",
     queueTab: "Queue",
@@ -224,8 +229,9 @@ const translations = {
     albumsTitle: "Your Albums",
     emptyQueue: "No songs yet.",
     emptyAlbums: "No albums detected.",
-    clearQueue: "Clear",
-    playAlbum: "Play Album",
+    clearQueue: "Clear all",
+    playAlbum: "Play",
+    delAlbumBtn: "Delete",
     prevBtn: "Previous",
     playBtn: "Play",
     nextBtn: "Next"
@@ -295,53 +301,112 @@ const coverPlaceholder = document.getElementById('cover-placeholder');
 let tracks = [];
 let current = -1;
 
+// Guardar datos en Base64 para persistencia en LocalStorage al cerrar la app
+function saveToLocalStorage() {
+  const dataToSave = tracks.map(t => ({
+    name: t.name,
+    artist: t.artist,
+    album: t.album,
+    coverUrl: t.coverUrl,
+    size: t.size,
+    base64Data: t.base64Data
+  }));
+  try {
+    localStorage.setItem('nero_tracks', JSON.stringify(dataToSave));
+  } catch(e) {
+    console.warn("Memoria local llena o archivo muy pesado", e);
+  }
+}
+
+function loadFromLocalStorage() {
+  const saved = localStorage.getItem('nero_tracks');
+  if (!saved) return;
+  try {
+    const parsed = JSON.parse(saved);
+    tracks = parsed.map(item => {
+      // Reconstruir el objeto Blob/URL desde base64 guardado
+      const blob = base64ToBlob(item.base64Data, 'audio/mp3');
+      return {
+        ...item,
+        file: null,
+        url: URL.createObjectURL(blob)
+      };
+    });
+    if (tracks.length > 0) {
+      render();
+    }
+  } catch(e) {
+    console.error("Error al cargar canciones guardadas", e);
+  }
+}
+
+function base64ToBlob(base64, mime) {
+  const byteCharacters = atob(base64.split(',')[1] || base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  return new Blob([byteArray], {type: mime});
+}
+
+function fileToBase64(file, callback) {
+  const reader = new FileReader();
+  reader.onload = () => callback(reader.result);
+  reader.readAsDataURL(file);
+}
+
 files.addEventListener('change', e => {
   const uploadedFiles = [...e.target.files];
   
   uploadedFiles.forEach(file => {
-    let trackObj = {
-      file,
-      name: file.name.replace(/\.[^/.]+$/, ""),
-      artist: "Desconocido",
-      album: "Desconocido",
-      coverUrl: null,
-      url: URL.createObjectURL(file),
-      size: formatSize(file.size)
-    };
-    
-    tracks.push(trackObj);
-    const index = tracks.length - 1;
-    
-    jsmediatags.read(file, {
-      onSuccess: function(tag) {
-        const tags = tag.tags;
-        if (tags.title) trackObj.name = tags.title;
-        if (tags.artist) trackObj.artist = tags.artist;
-        if (tags.album) trackObj.album = tags.album;
-        
-        if (tags.picture) {
-          try {
-            const data = tags.picture.data;
-            const format = tags.picture.format;
-            let base64String = "";
-            for (let i = 0; i < data.length; i++) {
-              base64String += String.fromCharCode(data[i]);
-            }
-            trackObj.coverUrl = `data:${format};base64,${window.btoa(base64String)}`;
-          } catch(err) {}
+    fileToBase64(file, (base64String) => {
+      let trackObj = {
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        artist: "Desconocido",
+        album: "Desconocido",
+        coverUrl: null,
+        size: formatSize(file.size),
+        base64Data: base64String,
+        url: URL.createObjectURL(file)
+      };
+      
+      tracks.push(trackObj);
+      const index = tracks.length - 1;
+      
+      jsmediatags.read(file, {
+        onSuccess: function(tag) {
+          const tags = tag.tags;
+          if (tags.title) trackObj.name = tags.title;
+          if (tags.artist) trackObj.artist = tags.artist;
+          if (tags.album) trackObj.album = tags.album;
+          
+          if (tags.picture) {
+            try {
+              const data = tags.picture.data;
+              const format = tags.picture.format;
+              let picString = "";
+              for (let i = 0; i < data.length; i++) {
+                picString += String.fromCharCode(data[i]);
+              }
+              trackObj.coverUrl = `data:${format};base64,${window.btoa(picString)}`;
+            } catch(err) {}
+          }
+          saveToLocalStorage();
+          render();
+          if (current === index) updateUIInfo(trackObj);
+        },
+        onError: function() {
+          let cleanName = file.name.replace(/\.[^/.]+$/, "");
+          if (cleanName.includes("-")) {
+            let parts = cleanName.split("-");
+            trackObj.artist = parts[0].trim();
+            trackObj.name = parts.slice(1).join("-").trim();
+          }
+          saveToLocalStorage();
+          render();
         }
-        render();
-        if (current === index) updateUIInfo(trackObj);
-      },
-      onError: function() {
-        let cleanName = file.name.replace(/\.[^/.]+$/, "");
-        if (cleanName.includes("-")) {
-          let parts = cleanName.split("-");
-          trackObj.artist = parts[0].trim();
-          trackObj.name = parts.slice(1).join("-").trim();
-        }
-        render();
-      }
+      });
     });
   });
 
@@ -409,7 +474,6 @@ function render() {
   playlist.className = 'playlist-scroll';
   clearBtn.style.display = 'block';
   
-  // Renderizar cola con controles de reordenar (▲ ▼)
   playlist.innerHTML = tracks.map((t, i) => `
     <div class="track ${i === current ? 'active' : ''}" data-i="${i}">
       <div class="num">${i + 1}</div>
@@ -431,7 +495,6 @@ function render() {
     };
   });
 
-  // Botones de reordenar y borrar
   playlist.querySelectorAll('.order-btn').forEach(btn => {
     btn.onclick = (e) => {
       e.stopPropagation();
@@ -456,12 +519,12 @@ function moveTrack(index, direction) {
   const item = tracks.splice(index, 1)[0];
   tracks.splice(targetIndex, 0, item);
 
-  // Ajustar el índice actual para que siga sonando la misma canción si se mueve
   if (current === index) {
     current = targetIndex;
   } else if (current === targetIndex) {
     current = index;
   }
+  saveToLocalStorage();
   render();
 }
 
@@ -493,7 +556,7 @@ function renderAlbums() {
   }
 
   albumsContainer.className = 'albums-grid';
-  albumsContainer.innerHTML = albumsList.map((album, idx) => `
+  albumsContainer.innerHTML = albumsList.map((album) => `
     <div class="album-card">
       <div>
         <div class="album-cover" data-first="${album.tracks[0]}">
@@ -502,11 +565,13 @@ function renderAlbums() {
         <div class="album-title">${escapeHtml(album.name)}</div>
         <div class="album-artist">${escapeHtml(album.artist)}</div>
       </div>
-      <button class="play-album-btn" data-tracks='${JSON.stringify(album.tracks)}'>${tr.playAlbum}</button>
+      <div class="album-actions">
+        <button class="play-album-btn" data-tracks='${JSON.stringify(album.tracks)}'>${tr.playAlbum}</button>
+        <button class="del-album-btn" data-albumname="${escapeHtml(album.name)}">${tr.delAlbumBtn}</button>
+      </div>
     </div>
   `).join('');
 
-  // Clic en la carátula lleva a la primera canción
   albumsContainer.querySelectorAll('.album-cover').forEach(cov => {
     cov.onclick = () => {
       load(+cov.dataset.first, true);
@@ -514,7 +579,6 @@ function renderAlbums() {
     };
   });
 
-  // Botón para reproducir el álbum completo en orden
   albumsContainer.querySelectorAll('.play-album-btn').forEach(btn => {
     btn.onclick = () => {
       const albumTracks = JSON.parse(btn.dataset.tracks);
@@ -522,6 +586,14 @@ function renderAlbums() {
         load(albumTracks[0], true);
         document.querySelector('[data-target="queue-view"]').click();
       }
+    };
+  });
+
+  // Botón para borrar un álbum completo de forma selectiva
+  albumsContainer.querySelectorAll('.del-album-btn').forEach(btn => {
+    btn.onclick = () => {
+      const albName = btn.dataset.albumname;
+      removeAlbum(albName);
     };
   });
 }
@@ -539,7 +611,24 @@ function removeTrack(i) {
   } else if (current > i) {
     current--;
   }
+  saveToLocalStorage();
   render();
+}
+
+function removeAlbum(albumName) {
+  // Filtrar y conservar únicamente las pistas que NO pertenezcan al álbum seleccionado
+  const tracksToRemove = tracks.filter(t => (t.album || "Desconocido") === albumName);
+  tracks = tracks.filter(t => (t.album || "Desconocido") !== albumName);
+  
+  audio.pause();
+  current = -1;
+  audio.src = '';
+  
+  saveToLocalStorage();
+  render();
+  if (tracks.length > 0) {
+    load(0, false);
+  }
 }
 
 clearBtn.onclick = () => {
@@ -547,6 +636,7 @@ clearBtn.onclick = () => {
   audio.src = '';
   tracks = [];
   current = -1;
+  localStorage.removeItem('nero_tracks');
   render();
 };
 
@@ -600,11 +690,15 @@ progress.oninput = () => {
   }
 };
 
-// Control de volumen corregido
-volumeSlider.oninput = () => {
+// Control de volumen completamente funcional (eventos input y change)
+const setVolume = () => {
   audio.volume = volumeSlider.value;
 };
+volumeSlider.addEventListener('input', setVolume);
+volumeSlider.addEventListener('change', setVolume);
 
+// Cargar canciones guardadas al iniciar la aplicación
+loadFromLocalStorage();
 updateTexts();
 </script>
 </body>
