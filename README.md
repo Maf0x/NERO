@@ -20,4 +20,4 @@ Proximamente se agregaran mas idiomas
 La pagina es "https://maf0x.github.io/NERO/". Al abrir la pagina. presiona en las opciones y presiona "agregar a la pantalla de inicio". si no te aparece la opcion de aparecer en pantalla de inicio. consulta a google como agregar a la pantalla de inicio en tu navegador.
 
 2.
-si quieren que aparezca el nombre del artista, la foto del album. Deben asegurarse que pueda aparecer, y si no aparece. instalese una aplicaion que pueda cambiar eso (tag)
+si quieren que aparezca el nombre del artista, la foto del album. Deben asegurarse que pueda aparecer, y si no aparece. instalese una aplicaion que pueda cambiar eso (tag). Ademas que si no se reproduce la cancion puede ser que pusiste una foto de muy buena calidad, (maximo 500 x 500)
