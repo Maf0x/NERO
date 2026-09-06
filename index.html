@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <title>NERO</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#0b0b0d;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif}
+    .app{min-height:100vh;padding:24px 18px calc(32px + env(safe-area-inset-bottom));max-width:700px;margin:auto}
+    h1{font-size:30px;margin:10px 0 4px}
+    .sub{color:#999;margin:0 0 22px}
+    .drop{border:1px dashed #555;border-radius:18px;padding:22px;text-align:center;background:#151518}
+    input[type=file]{display:none}
+    .pick{display:inline-block;background:#fff;color:#000;padding:12px 18px;border-radius:999px;font-weight:700;cursor:pointer}
+    .now{margin-top:22px;padding:18px;border-radius:20px;background:#17171b}
+    .cover{width:100%;aspect-ratio:1;border-radius:16px;background:linear-gradient(135deg,#333,#111);display:grid;place-items:center;font-size:70px;margin-bottom:16px}
+    .title{font-size:22px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .artist{color:#999;margin-top:4px}
+    audio{width:100%;margin-top:18px}
+    .controls{display:flex;justify-content:center;gap:12px;margin:14px 0}
+    button{border:0;border-radius:50%;width:52px;height:52px;background:#29292e;color:#fff;font-size:20px}
+    button.main{width:64px;height:64px;background:#fff;color:#000}
+    .list{margin-top:22px}
+    .track{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;cursor:pointer}
+    .track.active{background:#1e1e23}
+    .num{width:28px;color:#888;text-align:center}
+    .tn{flex:1;min-width:0}
+    .tn b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tn span{font-size:13px;color:#888}
+    .empty{color:#777;text-align:center;padding:20px}
+  </style>
+</head>
+<body>
+<main class="app">
+  <h1>🎵 NERO</h1>
+  <p class="sub">Tu reproductor de música privado</p>
+
+  <div class="drop">
+    <label class="pick" for="files">＋ Añadir música</label>
+    <input id="files" type="file" accept="audio/*" multiple>
+    <p style="color:#888;margin-bottom:0">Selecciona canciones guardadas en tu dispositivo.</p>
+  </div>
+
+  <section class="now">
+    <div class="cover">♪</div>
+    <div id="title" class="title">Ninguna canción</div>
+    <div id="artist" class="artist">Añade música para comenzar</div>
+    <audio id="audio" controls preload="metadata"></audio>
+    <div class="controls">
+      <button id="prev" aria-label="Anterior">⏮</button>
+      <button id="play" class="main" aria-label="Reproducir">▶</button>
+      <button id="next" aria-label="Siguiente">⏭</button>
+    </div>
+  </section>
+
+  <section class="list">
+    <h2>Cola</h2>
+    <div id="playlist" class="empty">No hay canciones todavía.</div>
+  </section>
+</main>
+
+<script>
+const audio=document.getElementById('audio'), files=document.getElementById('files');
+const playlist=document.getElementById('playlist'), title=document.getElementById('title'), artist=document.getElementById('artist'), play=document.getElementById('play');
+let tracks=[], current=-1;
+
+files.addEventListener('change', e=>{
+  const added=[...e.target.files].map(file=>({file,url:URL.createObjectURL(file)}));
+  tracks.push(...added); render();
+  if(current===-1) load(0);
+  files.value='';
+});
+function load(i, autoplay=false){
+  if(!tracks[i]) return;
+  current=i; const t=tracks[i];
+  audio.src=t.url; title.textContent=t.file.name.replace(/\.[^/.]+$/,'');
+  artist.textContent='Archivo local'; render();
+  if(autoplay) audio.play().catch(()=>{});
+}
+function render(){
+  if(!tracks.length){playlist.className='empty';playlist.textContent='No hay canciones todavía.';return}
+  playlist.className='';
+  playlist.innerHTML=tracks.map((t,i)=>`
+    <div class="track ${i===current?'active':''}" data-i="${i}">
+      <div class="num">${i+1}</div>
+      <div class="tn"><b>${escapeHtml(t.file.name)}</b><span>${format(t.file.size)}</span></div>
+    </div>`).join('');
+  playlist.querySelectorAll('.track').forEach(el=>el.onclick=()=>load(+el.dataset.i,true));
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function format(n){return (n/1048576).toFixed(1)+' MB'}
+play.onclick=()=>{if(current<0){load(0,true);return} audio.paused?audio.play():audio.pause()};
+audio.onplay=()=>play.textContent='⏸'; audio.onpause=()=>play.textContent='▶';
+audio.onended=()=>next();
+function next(){if(tracks.length) load((current+1)%tracks.length,true)}
+function prev(){if(tracks.length) load((current-1+tracks.length)%tracks.length,true)}
+document.getElementById('next').onclick=next; document.getElementById('prev').onclick=prev;
+</script>
+</body>
+</html>
