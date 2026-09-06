@@ -3,35 +3,65 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#111111">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon.svg">
-  <title>NERO</title>
+  <meta name="theme-color" content="#0b0b0d">
+  <title>NERO — Reproductor Privado</title>
   <style>
     *{box-sizing:border-box}
-    body{margin:0;background:#0b0b0d;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif}
+    body{margin:0;background:#0b0b0d;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif;-webkit-font-smoothing:antialiased}
     .app{min-height:100vh;padding:24px 18px calc(32px + env(safe-area-inset-bottom));max-width:700px;margin:auto}
-    h1{font-size:30px;margin:10px 0 4px}
-    .sub{color:#999;margin:0 0 22px}
-    .drop{border:1px dashed #555;border-radius:18px;padding:22px;text-align:center;background:#151518}
+    h1{font-size:28px;margin:10px 0 2px;letter-spacing:-0.5px}
+    .sub{color:#888;margin:0 0 20px;font-size:14px}
+    
+    .drop{border:1px dashed #333;border-radius:20px;padding:20px;text-align:center;background:#131316;transition:border-color 0.2s}
+    .drop:hover{border-color:#555}
     input[type=file]{display:none}
-    .pick{display:inline-block;background:#fff;color:#000;padding:12px 18px;border-radius:999px;font-weight:700;cursor:pointer}
-    .now{margin-top:22px;padding:18px;border-radius:20px;background:#17171b}
-    .cover{width:100%;aspect-ratio:1;border-radius:16px;background:linear-gradient(135deg,#333,#111);display:grid;place-items:center;font-size:70px;margin-bottom:16px}
-    .title{font-size:22px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .artist{color:#999;margin-top:4px}
-    audio{width:100%;margin-top:18px}
-    .controls{display:flex;justify-content:center;gap:12px;margin:14px 0}
-    button{border:0;border-radius:50%;width:52px;height:52px;background:#29292e;color:#fff;font-size:20px}
-    button.main{width:64px;height:64px;background:#fff;color:#000}
-    .list{margin-top:22px}
-    .track{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;cursor:pointer}
-    .track.active{background:#1e1e23}
-    .num{width:28px;color:#888;text-align:center}
+    .pick{display:inline-block;background:#fff;color:#000;padding:12px 20px;border-radius:999px;font-weight:600;cursor:pointer;font-size:14px;transition:transform 0.1s}
+    .pick:active{transform:scale(0.97)}
+    
+    .now{margin-top:20px;padding:22px;border-radius:24px;background:#151519;border:1px solid #222}
+    .cover{width:100%;aspect-ratio:16/9;border-radius:16px;background:linear-gradient(135deg,#1f1f26,#111115);display:grid;place-items:center;font-size:42px;margin-bottom:18px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05);position:relative;overflow:hidden}
+    .cover::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center, rgba(255,255,255,0.03) 0%, transparent 70%)}
+    
+    .track-info{margin-bottom:14px}
+    .title{font-size:20px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .artist{color:#888;font-size:14px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    
+    .progress-container{margin-bottom:16px}
+    .progress-bar{width:100%;height:6px;background:#26262c;border-radius:3px;appearance:none;outline:none;cursor:pointer;accent-color:#fff}
+    .time-codes{display:flex;justify-content:space-between;font-size:11px;color:#777;margin-top:6px}
+    
+    .controls{display:flex;justify-content:center;align-items:center;gap:16px;margin:10px 0}
+    button{border:0;border-radius:50%;width:48px;height:48px;background:#202026;color:#fff;font-size:18px;cursor:pointer;display:grid;place-items:center;transition:background 0.2s, transform 0.1s}
+    button:hover{background:#2a2a32}
+    button:active{transform:scale(0.95)}
+    button.main{width:60px;height:60px;background:#fff;color:#000;font-size:22px}
+    button.main:hover{background:#e0e0e0}
+
+    .extra-controls{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid #202025}
+    .volume-box{display:flex;align-items:center;gap:8px;color:#777;font-size:13px}
+    .volume-box input{accent-color:#fff;cursor:pointer;width:80px}
+
+    .list{margin-top:24px}
+    .list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .list-header h2{font-size:18px;margin:0}
+    .clear-btn{background:transparent;color:#ff5555;width:auto;height:auto;font-size:13px;font-weight:600;padding:4px 8px;border-radius:6px}
+    .clear-btn:hover{background:rgba(255,85,85,0.1)}
+
+    .playlist-scroll{max-height:300px;overflow-y:auto;padding-right:4px}
+    .playlist-scroll::-webkit-scrollbar{width:4px}
+    .playlist-scroll::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+
+    .track{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background 0.15s;margin-bottom:4px}
+    .track:hover{background:#18181e}
+    .track.active{background:#22222b}
+    .num{width:24px;color:#777;text-align:center;font-size:13px}
     .tn{flex:1;min-width:0}
-    .tn b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .tn span{font-size:13px;color:#888}
-    .empty{color:#777;text-align:center;padding:20px}
+    .tn b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+    .tn span{font-size:12px;color:#777}
+    .del-track{background:transparent;color:#666;width:32px;height:32px;font-size:14px;border-radius:50%}
+    .del-track:hover{color:#ff5555;background:rgba(255,85,85,0.1)}
+    
+    .empty{color:#777;text-align:center;padding:30px;font-size:14px;background:#131316;border-radius:16px}
   </style>
 </head>
 <body>
@@ -40,65 +70,218 @@
   <p class="sub">Tu reproductor de música privado</p>
 
   <div class="drop">
-    <label class="pick" for="files">＋ Añadir música</label>
-    <input id="files" type="file" accept="audio/*" multiple>
-    <p style="color:#888;margin-bottom:0">Selecciona canciones guardadas en tu dispositivo.</p>
+    <label class="pick" for="files">＋ Añadir archivos MP3</label>
+    <input id="files" type="file" accept="audio/mp3, audio/*" multiple>
+    <p style="color:#777;margin-top:10px;margin-bottom:0;font-size:13px">Selecciona canciones en MP3 u otros formatos de audio.</p>
   </div>
 
   <section class="now">
     <div class="cover">♪</div>
-    <div id="title" class="title">Ninguna canción</div>
-    <div id="artist" class="artist">Añade música para comenzar</div>
-    <audio id="audio" controls preload="metadata"></audio>
+    <div class="track-info">
+      <div id="title" class="title">Ninguna canción</div>
+      <div id="artist" class="artist">Añade música para comenzar</div>
+    </div>
+    
+    <div class="progress-container">
+      <input type="range" id="progress" class="progress-bar" value="0" min="0" max="100" step="0.1">
+      <div class="time-codes">
+        <span id="current-time">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+
+    <audio id="audio" preload="metadata"></audio>
+    
     <div class="controls">
       <button id="prev" aria-label="Anterior">⏮</button>
       <button id="play" class="main" aria-label="Reproducir">▶</button>
       <button id="next" aria-label="Siguiente">⏭</button>
     </div>
+
+    <div class="extra-controls">
+      <div class="volume-box">
+        <span>🔊</span>
+        <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+      </div>
+      <button id="clear" class="clear-btn" style="display:none">Vaciar cola</button>
+    </div>
   </section>
 
   <section class="list">
-    <h2>Cola</h2>
+    <div class="list-header">
+      <h2>Cola de reproducción</h2>
+    </div>
     <div id="playlist" class="empty">No hay canciones todavía.</div>
   </section>
 </main>
 
 <script>
-const audio=document.getElementById('audio'), files=document.getElementById('files');
-const playlist=document.getElementById('playlist'), title=document.getElementById('title'), artist=document.getElementById('artist'), play=document.getElementById('play');
-let tracks=[], current=-1;
+const audio = document.getElementById('audio');
+const files = document.getElementById('files');
+const playlist = document.getElementById('playlist');
+const title = document.getElementById('title');
+const artist = document.getElementById('artist');
+const play = document.getElementById('play');
+const progress = document.getElementById('progress');
+const currentTimeEl = document.getElementById('current-time');
+const durationEl = document.getElementById('duration');
+const volumeSlider = document.getElementById('volume');
+const clearBtn = document.getElementById('clear');
 
-files.addEventListener('change', e=>{
-  const added=[...e.target.files].map(file=>({file,url:URL.createObjectURL(file)}));
-  tracks.push(...added); render();
-  if(current===-1) load(0);
-  files.value='';
+let tracks = [];
+let current = -1;
+
+// Manejar selección de archivos (Foco total en MP3 y compatibilidad)
+files.addEventListener('change', e => {
+  const newFiles = [...e.target.files].map(file => ({
+    file,
+    name: file.name.replace(/\.[^/.]+$/, ""),
+    url: URL.createObjectURL(file),
+    size: formatSize(file.size)
+  }));
+  
+  tracks.push(...newFiles);
+  render();
+  if (current === -1 && tracks.length > 0) load(0);
+  files.value = '';
 });
-function load(i, autoplay=false){
-  if(!tracks[i]) return;
-  current=i; const t=tracks[i];
-  audio.src=t.url; title.textContent=t.file.name.replace(/\.[^/.]+$/,'');
-  artist.textContent='Archivo local'; render();
-  if(autoplay) audio.play().catch(()=>{});
+
+function load(i, autoplay = false) {
+  if (!tracks[i]) return;
+  current = i;
+  const t = tracks[i];
+  
+  audio.src = t.url;
+  title.textContent = t.name;
+  artist.textContent = t.file.name.endsWith('.mp3') ? 'Archivo MP3 local' : 'Audio local';
+  render();
+  
+  if (autoplay) {
+    audio.play().catch(() => {});
+  }
 }
-function render(){
-  if(!tracks.length){playlist.className='empty';playlist.textContent='No hay canciones todavía.';return}
-  playlist.className='';
-  playlist.innerHTML=tracks.map((t,i)=>`
-    <div class="track ${i===current?'active':''}" data-i="${i}">
-      <div class="num">${i+1}</div>
-      <div class="tn"><b>${escapeHtml(t.file.name)}</b><span>${format(t.file.size)}</span></div>
+
+function render() {
+  if (!tracks.length) {
+    playlist.className = 'empty';
+    playlist.textContent = 'No hay canciones todavía.';
+    clearBtn.style.display = 'none';
+    title.textContent = 'Ninguna canción';
+    artist.textContent = 'Añade música para comenzar';
+    return;
+  }
+  
+  playlist.className = 'playlist-scroll';
+  clearBtn.style.display = 'block';
+  
+  playlist.innerHTML = tracks.map((t, i) => `
+    <div class="track ${i === current ? 'active' : ''}" data-i="${i}">
+      <div class="num">${i + 1}</div>
+      <div class="tn">
+        <b>${escapeHtml(t.name)}</b>
+        <span>${t.size}</span>
+      </div>
+      <button class="del-track" data-del="${i}" title="Eliminar">✕</button>
     </div>`).join('');
-  playlist.querySelectorAll('.track').forEach(el=>el.onclick=()=>load(+el.dataset.i,true));
+
+  // Eventos de clic en la lista
+  playlist.querySelectorAll('.track').forEach(el => {
+    el.onclick = (e) => {
+      if (e.target.closest('.del-track')) return;
+      load(+el.dataset.i, true);
+    };
+  });
+
+  // Eventos de borrado individual
+  playlist.querySelectorAll('.del-track').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const idx = +btn.dataset.del;
+      removeTrack(idx);
+    };
+  });
 }
-function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function format(n){return (n/1048576).toFixed(1)+' MB'}
-play.onclick=()=>{if(current<0){load(0,true);return} audio.paused?audio.play():audio.pause()};
-audio.onplay=()=>play.textContent='⏸'; audio.onpause=()=>play.textContent='▶';
-audio.onended=()=>next();
-function next(){if(tracks.length) load((current+1)%tracks.length,true)}
-function prev(){if(tracks.length) load((current-1+tracks.length)%tracks.length,true)}
-document.getElementById('next').onclick=next; document.getElementById('prev').onclick=prev;
+
+function removeTrack(i) {
+  tracks.splice(i, 1);
+  if (current === i) {
+    audio.pause();
+    current = -1;
+    if (tracks.length > 0) {
+      load(Math.min(i, tracks.length - 1), false);
+    } else {
+      audio.src = '';
+    }
+  } else if (current > i) {
+    current--;
+  }
+  render();
+}
+
+clearBtn.onclick = () => {
+  audio.pause();
+  audio.src = '';
+  tracks = [];
+  current = -1;
+  render();
+};
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function formatSize(n) {
+  return (n / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+// Controles de reproducción
+play.onclick = () => {
+  if (current < 0) {
+    if (tracks.length > 0) load(0, true);
+    return;
+  }
+  audio.paused ? audio.play() : audio.pause();
+};
+
+audio.onplay = () => play.textContent = '⏸';
+audio.onpause = () => play.textContent = '▶';
+audio.onended = () => next();
+
+function next() {
+  if (tracks.length) load((current + 1) % tracks.length, true);
+}
+function prev() {
+  if (tracks.length) load((current - 1 + tracks.length) % tracks.length, true);
+}
+
+document.getElementById('next').onclick = next;
+document.getElementById('prev').onclick = prev;
+
+// Actualizar barra de progreso
+audio.ontimeupdate = () => {
+  if (!isNaN(audio.duration)) {
+    progress.value = (audio.currentTime / audio.duration) * 100;
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+    durationEl.textContent = formatTime(audio.duration);
+  }
+};
+
+progress.oninput = () => {
+  if (!isNaN(audio.duration)) {
+    audio.currentTime = (progress.value / 100) * audio.duration;
+  }
+};
+
+// Control de volumen
+volumeSlider.oninput = () => {
+  audio.volume = volumeSlider.value;
+};
 </script>
 </body>
 </html>
