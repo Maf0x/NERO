@@ -6,3 +6,8 @@ algo importante es que esto no es una app. Es un archivo html que en el navegado
 (IDIOMAS)
 
 Hasta ahora noy hay una opcion de idiomas disponible. Solo español hasta ahora.
+
+
+(EXTRA)
+
+La pagina es "https://maf0x.github.io/NERO/". Al abrir la pagina. presiona en las opciones y presiona "agregar a la pantalla de inicio". si no te aparece la opcion de aparecer en pantalla de inicio. consulta a google como agregar a la pantalla de inicio en tu navegador.
