@@ -7,8 +7,8 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "icon.svg",
-      "sizes": "192x192 512x512",
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%23000000'/><text x='50%' y='54%' font-family='sans-serif' font-size='280' font-weight='900' fill='%23ffffff' text-anchor='middle' dominant-baseline='middle'>N</text></svg>",
+      "sizes": "512x512",
       "type": "image/svg+xml"
     }
   ]
